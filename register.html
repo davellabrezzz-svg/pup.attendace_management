@@ -41,7 +41,7 @@
       </div>
       <div class="row">
         <div><label>Email</label><input id="email" type="email" required></div>
-        <div><label>Address</label><input id="address"></div>
+        <div><label>Address</label><input id="address" placeholder="e.g. Maragondon, Cavite" required></div>
       </div>
     </div>
 
@@ -60,8 +60,8 @@
         </div>
         <div><label>Section</label><input id="section" placeholder="e.g. BSIT 1-1" required></div>
       </div>
-      <label>Parent / Guardian Name</label>
-      <input id="parent">
+      <label>Guardian Name</label>
+      <input id="guardian" placeholder="e.g. Juan Dela Cruz">
     </div>
 
     <div id="facultyFields" class="hidden">
@@ -132,9 +132,10 @@ function doRegister() {
   const get  = id => (document.getElementById(id)?.value || "").trim();
 
   if (!role) return showMsg(msg, "Select a role.", "error");
-  const name = get("name"), email = get("email");
-  if (!name)  return showMsg(msg, "Full name is required.", "error");
-  if (!email) return showMsg(msg, "Email is required.", "error");
+  const name = get("name"), email = get("email"), address = get("address");
+  if (!name)    return showMsg(msg, "Full name is required.", "error");
+  if (!email)   return showMsg(msg, "Email is required.", "error");
+  if (!address) return showMsg(msg, "Address is required — it will appear in your contact information.", "error");
 
   const pw  = get("password"), pw2 = get("password2"), pin = get("pin");
   if (pw.length < 6)          return showMsg(msg, "Password must be at least 6 characters.", "error");
@@ -162,7 +163,7 @@ function doRegister() {
     if (!get("course"))    return showMsg(msg, "Program is required.", "error");
     if (!get("section"))   return showMsg(msg, "Section is required.", "error");
     if (!get("phone"))     return showMsg(msg, "Phone number is required.", "error");
-    Object.assign(base, { id, phone: get("phone"), parent: get("parent"),
+    Object.assign(base, { id, phone: get("phone"), guardian: get("guardian"),
                           course: get("course"), section: get("section") });
   } else {
     id = get("employeeNo");

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact Us — PUP Maragondon</title>
+<script src="theme.js"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="navbar">
+  <img class="navbar-logo" src="PUP.jpg" alt="PUP" onerror="this.style.display='none'">
+  <div class="brand">PUP Maragondon<small>Attendance Management System</small></div>
+  <div class="nav-spacer"></div>
+  <a class="nav-link" href="index.html">Home</a>
+  <a class="nav-link" href="good-governance.html">Good Governance</a>
+  <a class="nav-link" href="transparency-seal.html">Transparency Seal</a>
+  <a class="nav-link" href="contact-us.html" style="background:var(--bg2);color:var(--maroon);">Contact Us</a>
+  <button class="theme-toggle" onclick="window.__toggleTheme()" style="margin-left:4px">🌙</button>
+  <span id="authArea"></span>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h1>Contact Us</h1>
+    <div class="sub">PUP Maragondon Branch</div>
+    <div class="info-box">
+      <p><b>Address:</b> Bucal, Maragondon, Cavite, Philippines</p>
+      <p><b>Telephone:</b> (046) 513-0095</p>
+      <p><b>General Email:</b> maragondon@pup.edu.ph</p>
+      <p><b>Website:</b> <a href="https://pup.edu.ph" target="_blank" style="color:var(--maroon);font-weight:700;">pup.edu.ph</a></p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>👤 Your Registered Contact Information</h2>
+    <div id="myContactBox"></div>
+  </div>
+
+  <div class="card">
+    <h2>✉️ Send Us a Message</h2>
+    <p class="sub">This opens your email app with the message pre-filled — no account needed to send a general inquiry.</p>
+    <div class="row">
+      <div><label>Your Name</label><input id="cName"></div>
+      <div><label>Your Email</label><input id="cEmail" type="email"></div>
+    </div>
+    <label>Subject</label>
+    <input id="cSubject" placeholder="e.g. Question about enrollment">
+    <label>Message</label>
+    <textarea id="cMessage" rows="4" placeholder="Type your message here..."></textarea>
+    <button class="btn" onclick="sendMessage()">Send Message</button>
+    <div id="cMsg" class="msg"></div>
+  </div>
+
+</div>
+
+<script src="app.js"></script>
+<script>
+(function(){
+  const sess = DB.get("session", null);
+  const authArea = document.getElementById("authArea");
+  const box = document.getElementById("myContactBox");
+
+  if (sess) {
+    authArea.innerHTML = '<span class="user-chip">'+sess.name+' · '+sess.id+'</span> '
+      + '<a class="nav-link logout" href="#" onclick="event.preventDefault();logout();" style="margin-left:6px;">Log Out</a>';
+
+    const me = findUser(sess.role, sess.id);
+    if (me) {
+      let html = '<div class="info-box">'
+        + '<p class="info-line"><span><b>Name:</b> ' + me.name + '</span><span><b>Role:</b> ' + (me.role === 'faculty' ? 'Faculty' : 'Student') + '</span><span><b>ID:</b> ' + me.id + '</span></p>'
+        + '<p><b>📧 Email:</b> ' + (me.email || '—') + '</p>'
+        + '<p><b>🏠 Address:</b> ' + (me.address || '—') + '</p>';
+      if (me.role === 'student') {
+        html += '<p class="info-line"><span><b>📞 Phone:</b> ' + (me.phone || '—') + '</span><span><b>👨‍👩‍👧 Guardian:</b> ' + (me.guardian || '—') + '</span></p>';
+      }
+      html += '</div><p class="muted">This is exactly the email and address you provided when you registered your account.</p>';
+      box.innerHTML = html;
+      document.getElementById('cName').value = me.name;
+      document.getElementById('cEmail').value = me.email || '';
+    }
+  } else {
+    authArea.innerHTML = '<a class="nav-link" href="login.html">Sign In</a>'
+      + '<a class="nav-link logout" href="register.html" style="margin-left:6px;">Register</a>';
+    box.innerHTML = '<p class="empty">Sign in to view the email and address associated with your account.</p>'
+      + '<div class="btn-row"><a class="btn" href="login.html" style="text-decoration:none;text-align:center;">🔐 Sign In</a>'
+      + '<a class="btn gold" href="register.html" style="text-decoration:none;text-align:center;">📝 Register</a></div>';
+  }
+})();
+
+function sendMessage() {
+  const msg = document.getElementById("cMsg");
+  const name = document.getElementById("cName").value.trim();
+  const email = document.getElementById("cEmail").value.trim();
+  const subject = document.getElementById("cSubject").value.trim() || "Inquiry from PUP Maragondon Attendance System";
+  const body = document.getElementById("cMessage").value.trim();
+  if (!name || !email || !body) { showMsg(msg, "Please fill in your name, email, and message.", "error"); return; }
+  const fullBody = "From: " + name + " (" + email + ")\n\n" + body;
+  window.location.href = "mailto:maragondon@pup.edu.ph?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(fullBody);
+  showMsg(msg, "Opening your email app…", "ok");
+}
+</script>
+</body>
+</html>

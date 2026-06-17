@@ -32,6 +32,7 @@
       <p><b>Name:</b> <span id="iName">—</span></p>
       <p><b>Employee No.:</b> <span id="iNo">—</span></p>
       <p><b>Email:</b> <span id="iMail">—</span></p>
+      <p><b>Address:</b> <span id="iAddr">—</span></p>
     </div>
 
     <div class="row">
@@ -48,6 +49,7 @@
     <div class="btn-row">
       <button class="btn" onclick="proceed()">Proceed to Attendance Record →</button>
       <button class="btn alt" onclick="document.getElementById('contactInfo').scrollIntoView({behavior:'smooth'})">View Contact Info</button>
+      <a class="btn gold" href="manage.html" style="text-decoration:none;text-align:center">📚 Manage Curriculum</a>
     </div>
   </div>
 
@@ -75,14 +77,34 @@ document.getElementById("hiName").textContent = me.name.split(" ").slice(-1)[0];
 document.getElementById("iName").textContent = me.name;
 document.getElementById("iNo").textContent = me.id;
 document.getElementById("iMail").textContent = me.email || "—";
+document.getElementById("iAddr").textContent = me.address || "—";
 
 const courses = me.courses && me.courses.length ? me.courses : ["BSCS","BSIT","DIT","DOMT","DEET"];
 const sections = me.sections && me.sections.length ? me.sections : [];
 const cSel = document.getElementById("course");
 const sSel = document.getElementById("section");
 courses.forEach(c => cSel.add(new Option(c, c)));
-const allSections = sections.length ? sections : [...new Set(allUsersByRole("student").map(s=>s.section).filter(Boolean))].sort();
+
+// Load sections from program-sections map (set by manage.html) plus any legacy sections
+const progSecMap = (function() {
+  try { return JSON.parse(localStorage.getItem("progSections_" + me.id)) || {}; } catch { return {}; }
+})();
+const mappedSections = Object.values(progSecMap).flat();
+const legacySections = sections.filter(s => !mappedSections.includes(s));
+const allSections = [...new Set([...mappedSections, ...legacySections, ...allUsersByRole("student").map(s=>s.section).filter(Boolean)])].sort();
 allSections.forEach(s => sSel.add(new Option(s, s)));
+
+// Filter sections by selected program
+cSel.addEventListener("change", function() {
+  const prog = this.value;
+  sSel.innerHTML = '<option value="">-- Select Section --</option>';
+  const filtered = prog
+    ? (progSecMap[prog] || allSections.filter(s => s.startsWith(prog)))
+    : allSections;
+  const display = filtered.length ? filtered : allSections;
+  display.forEach(s => sSel.add(new Option(s, s)));
+  loadSection();
+});
 
 document.getElementById("cCourses").textContent = courses.length;
 document.getElementById("cSecs").textContent = allSections.length;
@@ -105,8 +127,8 @@ function loadSection() {
   body.innerHTML = list.map((s,i)=>`<tr><td>${i+1}</td><td>${s.name}</td><td>${s.id}</td><td>${s.email||"—"}</td><td>${s.phone||"—"}</td></tr>`).join("");
   info.innerHTML = list.map(s=>`<div class="info-box" style="margin-bottom:10px;">
     <p><b>${s.name}</b> · ${s.id}</p>
-    <p>📧 ${s.email||"—"} &nbsp;&nbsp; 📞 ${s.phone||"—"}</p>
-    <p>👨‍👩‍👧 Parent: ${s.parent||"—"} &nbsp;&nbsp; 🏠 ${s.address||"—"}</p>
+    <p class="info-line"><span>📧 ${s.email||"—"}</span><span>📞 ${s.phone||"—"}</span></p>
+    <p class="info-line"><span>👨‍👩‍👧 Guardian: ${s.guardian||"—"}</span><span>🏠 ${s.address||"—"}</span></p>
   </div>`).join("");
 }
 

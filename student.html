@@ -36,6 +36,12 @@
       <p><b>Program / Section:</b> <span id="iSec">—</span></p>
     </div>
 
+    <div class="info-box">
+      <p class="info-line"><span><b>📧 Email:</b> <span id="iMail">—</span></span><span><b>📞 Phone:</b> <span id="iPhone">—</span></span></p>
+      <p><b>👨‍👩‍👧 Guardian:</b> <span id="iGuardian">—</span></p>
+      <p><b>🏠 Address:</b> <span id="iAddr">—</span></p>
+    </div>
+
     <div class="row">
       <div>
         <label>Subject</label>
@@ -79,6 +85,10 @@ document.getElementById("hiName").textContent = me.name.split(" ")[0];
 document.getElementById("iName").textContent = me.name;
 document.getElementById("iNo").textContent = me.id;
 document.getElementById("iSec").textContent = (me.course||"—") + " · " + (me.section||"—");
+document.getElementById("iMail").textContent = me.email || "—";
+document.getElementById("iPhone").textContent = me.phone || "—";
+document.getElementById("iGuardian").textContent = me.guardian || "—";
+document.getElementById("iAddr").textContent = me.address || "—";
 document.getElementById("recDate").value = today();
 
 // Populate teachers (faculty whose sections include the student's section, fallback to all)

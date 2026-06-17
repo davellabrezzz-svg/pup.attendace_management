@@ -157,6 +157,30 @@ function downloadXLSX(rows, colWidths, sheetName, filename) {
   const seededUsers = DB.get("users", {}) || {};
   seededUsers[userKey("faculty", "T-001")] = { ...seededUsers[userKey("faculty", "T-001")], ...demo };
 
+  // Each demo student has a distinct guardian and a distinct hometown address
+  const guardians = [
+    "Arnold Llabrez",
+    "Marites Balanlayos",
+    "Rodrigo Pagatpatan",
+    "Corazon Duag",
+    "Eduardo Gumale",
+    "Liza Angeles",
+    "Ramon Aguas",
+    "Teresita Reyes",
+    "Antonio Cabacang",
+    "Belinda Ansiboy",
+    "Mario Mendoza"
+  ];
+  const addresses = [
+    "Maragondon, Cavite",
+    "Naic, Cavite",
+    "Tanza, Cavite",
+    "Brgy. Capipisa, Tanza, Cavite",
+    "Kawit, Cavite",
+    "Brgy. Amaya, Tanza, Cavite",
+    "Sahud Ulan, Tanza, Cavite"
+  ];
+
   studentNames.forEach((name, index) => {
     const id = "2024-" + String(index + 1).padStart(5, "0");
     const emailName = name.toLowerCase().replace(/[^a-z]+/g, ".").replace(/^\.|\.$/g, "");
@@ -165,7 +189,8 @@ function downloadXLSX(rows, colWidths, sheetName, filename) {
       role: "student", id, name,
       age: "19", bday: "2005-08-12", sex: "",
       email: emailName + "@pup.edu.ph", phone: "09" + String(170000000 + index).slice(0, 9),
-      parent: "", address: "Maragondon, Cavite",
+      guardian: guardians[index % guardians.length],
+      address: addresses[index % addresses.length],
       section: "BSIT 1-1", course: "BSIT",
       passwordHash: hashPassword("student123"),
       pinHash: hashPin("1234"),

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transparency Seal — PUP Maragondon</title>
+<script src="theme.js"></script>
+<link rel="stylesheet" href="styles.css">
+<style>
+.seal-hero{display:flex;flex-direction:column;align-items:center;text-align:center;padding:8px 0 4px;}
+.seal-hero svg{width:170px;height:170px;filter:drop-shadow(0 4px 16px rgba(122,0,25,.35));}
+.disclosure-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;}
+.disclosure-item{background:var(--card2);border:1px solid var(--border);border-left:4px solid var(--gold-dark);
+  border-radius:8px;padding:14px 16px;}
+.disclosure-item h3{font-size:14px;color:var(--maroon);margin-bottom:6px;}
+.disclosure-item p{font-size:12.5px;color:var(--muted);margin-bottom:10px;line-height:1.5;}
+.disclosure-item .status{font-size:11.5px;font-weight:700;color:var(--warn);background:var(--warn-bg);
+  padding:3px 9px;border-radius:12px;display:inline-block;}
+</style>
+</head>
+<body>
+
+<div class="navbar">
+  <img class="navbar-logo" src="PUP.jpg" alt="PUP" onerror="this.style.display='none'">
+  <div class="brand">PUP Maragondon<small>Attendance Management System</small></div>
+  <div class="nav-spacer"></div>
+  <a class="nav-link" href="index.html">Home</a>
+  <a class="nav-link" href="good-governance.html">Good Governance</a>
+  <a class="nav-link" href="transparency-seal.html" style="background:var(--bg2);color:var(--maroon);">Transparency Seal</a>
+  <a class="nav-link" href="contact-us.html">Contact Us</a>
+  <button class="theme-toggle" onclick="window.__toggleTheme()" style="margin-left:4px">🌙</button>
+  <span id="authArea"></span>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <div class="seal-hero">
+      <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="100" cy="100" r="96" fill="#5a0012"/>
+        <circle cx="100" cy="100" r="96" fill="none" stroke="#f5c100" stroke-width="4"/>
+        <circle cx="100" cy="100" r="84" fill="none" stroke="#f5c100" stroke-width="1" stroke-dasharray="3 5" opacity="0.6"/>
+        <text x="100" y="38" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="800" fill="#f5c100" letter-spacing="2">TRANSPARENCY</text>
+        <text x="100" y="54" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="800" fill="#f5c100" letter-spacing="3">SEAL</text>
+        <g transform="translate(100,112)">
+          <path d="M -36 -8 L 0 -20 L 36 -8 L 36 20 L 0 8 L -36 20 Z" fill="#ffffff"/>
+          <line x1="0" y1="-20" x2="0" y2="8" stroke="#7a0019" stroke-width="2"/>
+          <line x1="-26" y1="-6" x2="-6" y2="-10" stroke="#7a0019" stroke-width="1.4" opacity=".6"/>
+          <line x1="-26" y1="2" x2="-6" y2="-2" stroke="#7a0019" stroke-width="1.4" opacity=".6"/>
+          <line x1="26" y1="-6" x2="6" y2="-10" stroke="#7a0019" stroke-width="1.4" opacity=".6"/>
+          <line x1="26" y1="2" x2="6" y2="-2" stroke="#7a0019" stroke-width="1.4" opacity=".6"/>
+          <circle cx="30" cy="2" r="14" fill="none" stroke="#f5c100" stroke-width="4"/>
+          <line x1="40" y1="12" x2="52" y2="24" stroke="#f5c100" stroke-width="5" stroke-linecap="round"/>
+        </g>
+        <text x="100" y="166" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="800" fill="#ffffff" letter-spacing="1.5">PUP MARAGONDON</text>
+        <text x="100" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="rgba(255,255,255,.7)" letter-spacing="1">ACCOUNTABILITY &middot; OPENNESS</text>
+      </svg>
+      <h1 style="margin-top:14px;">Transparency Seal</h1>
+      <p class="sub" style="max-width:640px;">
+        Posted in compliance with the annual Transparency Seal provision of the General
+        Appropriations Act, which requires government agencies to publish key information on
+        their mandate, officials, budget, and programs on their official website.
+      </p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📂 Required Disclosures</h2>
+    <div class="disclosure-list">
+      <div class="disclosure-item">
+        <h3>I. Mandate, Officials &amp; Contact Information</h3>
+        <p>The branch's mandate and functions, and a directory of officials with their position, designation, and contact details.</p>
+        <span class="status">Available — see Contact Us</span>
+      </div>
+      <div class="disclosure-item">
+        <h3>II. Annual Reports</h3>
+        <p>Yearly summary of the branch's accomplishments, enrollment, and operations for the past three years.</p>
+        <span class="status">To be uploaded by Admin Office</span>
+      </div>
+      <div class="disclosure-item">
+        <h3>III. Approved Budget &amp; Targets</h3>
+        <p>The branch's approved budget allocation and the corresponding performance targets for the year.</p>
+        <span class="status">To be uploaded by Admin Office</span>
+      </div>
+      <div class="disclosure-item">
+        <h3>IV. Major Programs &amp; Projects</h3>
+        <p>Programs and projects implemented by the branch, including their intended beneficiaries.</p>
+        <span class="status">To be uploaded by Admin Office</span>
+      </div>
+      <div class="disclosure-item">
+        <h3>V. Status of Implementation</h3>
+        <p>Progress and evaluation reports for ongoing programs and projects.</p>
+        <span class="status">To be uploaded by Admin Office</span>
+      </div>
+      <div class="disclosure-item">
+        <h3>VI. Annual Procurement Plan &amp; Awarded Contracts</h3>
+        <p>List of planned procurements and contracts awarded to suppliers or contractors.</p>
+        <span class="status">To be uploaded by Admin Office</span>
+      </div>
+      <div class="disclosure-item">
+        <h3>VII. Budget &amp; Financial Accountability Reports</h3>
+        <p>Periodic financial reports on the utilization of the branch's allocated funds.</p>
+        <span class="status">To be uploaded by Admin Office</span>
+      </div>
+      <div class="disclosure-item">
+        <h3>VIII. Freedom of Information (FOI) Summary</h3>
+        <p>Summary of FOI requests received by the campus and how they were acted upon.</p>
+        <span class="status">To be uploaded by Admin Office</span>
+      </div>
+    </div>
+    <p class="muted" style="margin-top:16px;">
+      Documents marked <i>"To be uploaded by Admin Office"</i> are maintained by the campus
+      Administrative Office and will be linked here once digitized. For copies in the meantime,
+      please reach out through the <a href="contact-us.html" style="color:var(--maroon);font-weight:700;">Contact Us</a> page.
+    </p>
+  </div>
+
+</div>
+
+<script src="app.js"></script>
+<script>
+(function(){
+  const sess = DB.get("session", null);
+  const authArea = document.getElementById("authArea");
+  if (sess) {
+    authArea.innerHTML = '<span class="user-chip">'+sess.name+' · '+sess.id+'</span> '
+      + '<a class="nav-link logout" href="#" onclick="event.preventDefault();logout();" style="margin-left:6px;">Log Out</a>';
+  } else {
+    authArea.innerHTML = '<a class="nav-link" href="login.html">Sign In</a>'
+      + '<a class="nav-link logout" href="register.html" style="margin-left:6px;">Register</a>';
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Curriculum — PUP Attendance</title>
+<script src="theme.js"></script>
+<link rel="stylesheet" href="styles.css">
+<style>
+/* ── Modal overlay ── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,.55); backdrop-filter: blur(3px);
+  align-items: center; justify-content: center; padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--card); border-radius: var(--radius);
+  padding: 30px 28px; width: 100%; max-width: 480px;
+  box-shadow: 0 12px 48px rgba(0,0,0,.35);
+  animation: modalIn .18s ease;
+}
+@keyframes modalIn { from { transform: translateY(-18px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal h3 { color: var(--maroon); font-size: 18px; font-weight: 800; margin-bottom: 18px; }
+.modal label { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 4px; display: block; margin-top: 12px; }
+.modal label:first-of-type { margin-top: 0; }
+.modal input, .modal select {
+  width: 100%; padding: 10px 13px; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border); background: var(--input-bg);
+  color: var(--text); font-size: 14px; outline: none; transition: border-color .2s;
+}
+.modal input:focus, .modal select:focus { border-color: var(--maroon); background: var(--input-focus); }
+.modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+.modal-btns .btn { flex: 1; margin-top: 0; }
+
+/* ── Tab bar ── */
+.tab-bar {
+  display: flex; border-bottom: 2px solid var(--border);
+  margin-bottom: 22px; gap: 0;
+}
+.tab-bar button {
+  background: none; border: none; padding: 13px 22px;
+  font-size: 14px; font-weight: 700; color: var(--muted);
+  cursor: pointer; border-bottom: 3px solid transparent;
+  margin-bottom: -2px; transition: color .15s, border-color .15s;
+  letter-spacing: .2px;
+}
+.tab-bar button:hover { color: var(--text); }
+.tab-bar button.active { color: var(--maroon); border-bottom-color: var(--maroon); }
+
+/* ── Section pill / tag list ── */
+.pill-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; min-height: 32px; }
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--bg2); border: 1.5px solid var(--border);
+  border-radius: 20px; padding: 5px 12px; font-size: 13px; font-weight: 600;
+}
+.pill-del {
+  background: none; border: none; color: var(--danger); cursor: pointer;
+  font-size: 15px; line-height: 1; padding: 0 2px; font-weight: 900;
+}
+.pill-del:hover { color: #8b0000; }
+
+/* ── Program cards (for sections) ── */
+.prog-card {
+  background: var(--card2); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); padding: 16px 18px; margin-bottom: 14px;
+}
+.prog-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.prog-card-name {
+  font-size: 15px; font-weight: 800; color: var(--maroon);
+}
+.prog-card-count {
+  font-size: 12px; color: var(--muted); font-weight: 600;
+}
+.prog-add-sec {
+  display: flex; gap: 8px; margin-top: 10px;
+}
+.prog-add-sec input {
+  flex: 1; padding: 8px 12px; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border); background: var(--input-bg);
+  color: var(--text); font-size: 13px; outline: none;
+}
+.prog-add-sec input:focus { border-color: var(--maroon); background: var(--input-focus); }
+.prog-add-sec .btn { width: auto; padding: 8px 14px; font-size: 13px; margin-top: 0; }
+.no-sections { color: var(--muted); font-size: 13px; font-style: italic; }
+
+/* ── Subject table ── */
+.subj-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+.subj-table th { text-align: left; font-size: 12px; font-weight: 700;
+  color: var(--muted); text-transform: uppercase; letter-spacing: .5px;
+  padding: 8px 10px; border-bottom: 2px solid var(--border); }
+.subj-table td { padding: 10px 10px; font-size: 13.5px; border-bottom: 1px solid var(--border); }
+.subj-table tr:last-child td { border-bottom: none; }
+.subj-table tr:hover td { background: var(--bg2); }
+.badge {
+  display: inline-block; padding: 3px 10px; border-radius: 20px;
+  font-size: 11.5px; font-weight: 700;
+  background: var(--info-bg); color: var(--info);
+}
+.badge.maroon { background: rgba(122,0,25,.1); color: var(--maroon); }
+
+/* ── Empty state ── */
+.empty-state {
+  text-align: center; padding: 36px 20px; color: var(--muted);
+}
+.empty-state .icon { font-size: 42px; margin-bottom: 10px; }
+.empty-state p { font-size: 14px; }
+
+/* ── Tab pane ── */
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+/* ── Section count warning ── */
+.warn-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--warn-bg); color: var(--warn);
+  border-radius: 20px; padding: 2px 10px; font-size: 11.5px; font-weight: 700;
+}
+</style>
+</head>
+<body>
+<div class="navbar">
+  <img class="navbar-logo" src="PUP.jpg" alt="PUP" onerror="this.style.display='none'">
+  <div class="brand">PUP Attendance<small>Maragondon Branch — Curriculum Manager</small></div>
+  <div class="nav-spacer"></div>
+  <span class="user-chip" id="userChip"></span>
+  <button class="theme-toggle" onclick="window.__toggleTheme()" style="margin-right:4px">🌙</button>
+  <a class="nav-link" href="teacher.html" style="margin-right:8px">← Dashboard</a>
+  <a class="nav-link logout" href="#" onclick="event.preventDefault();logout();">Log Out</a>
+</div>
+
+<div class="container">
+
+  <div class="stats" id="statsRow">
+    <div class="stat"><div class="lbl">Subjects</div><div class="val" id="stSubjects">0</div></div>
+    <div class="stat"><div class="lbl">Programs</div><div class="val" id="stPrograms">0</div></div>
+    <div class="stat"><div class="lbl">Sections</div><div class="val" id="stSections">0</div></div>
+    <div class="stat"><div class="lbl">Programs w/o Sections</div><div class="val" id="stNoSec" style="color:var(--danger)">0</div></div>
+  </div>
+
+  <div class="card">
+    <h1>📚 Curriculum Manager</h1>
+    <p class="sub">Add and manage the subjects, programs, and sections you handle as a professor.</p>
+
+    <div class="tab-bar">
+      <button class="active" onclick="switchTab('subjects',this)">📖 Subjects</button>
+      <button onclick="switchTab('programs',this)">🎓 Programs</button>
+      <button onclick="switchTab('sections',this)">🏫 Sections</button>
+    </div>
+
+    <!-- ── SUBJECTS TAB ── -->
+    <div class="tab-pane active" id="tab-subjects">
+      <div class="btn-row" style="margin-bottom:16px">
+        <button class="btn inline" onclick="openModal('subject')">+ Add Subject</button>
+      </div>
+      <div id="subjList"></div>
+    </div>
+
+    <!-- ── PROGRAMS TAB ── -->
+    <div class="tab-pane" id="tab-programs">
+      <div class="btn-row" style="margin-bottom:16px">
+        <button class="btn inline" onclick="openModal('program')">+ Add Program</button>
+      </div>
+      <div id="progList"></div>
+    </div>
+
+    <!-- ── SECTIONS TAB ── -->
+    <div class="tab-pane" id="tab-sections">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">
+        Each program must have at least one section. Programs without sections are flagged below.
+      </p>
+      <div id="secList"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── ADD SUBJECT MODAL ── -->
+<div class="modal-overlay" id="modalSubject">
+  <div class="modal">
+    <h3 id="subjModalTitle">Add Subject</h3>
+    <label>Subject Code</label>
+    <input id="subjCode" placeholder="e.g. CS101">
+    <label>Subject Name</label>
+    <input id="subjName" placeholder="e.g. Introduction to Computing">
+    <label>Program</label>
+    <select id="subjProg"><option value="">-- All Programs --</option></select>
+    <label>Units</label>
+    <input id="subjUnits" type="number" min="1" max="9" value="3">
+    <label>Description <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+    <input id="subjDesc" placeholder="Brief description">
+    <div id="subjMsg" class="msg" style="margin-top:10px"></div>
+    <div class="modal-btns">
+      <button class="btn ghost inline" onclick="closeModal('subject')">Cancel</button>
+      <button class="btn inline" onclick="saveSubject()">Save Subject</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADD PROGRAM MODAL ── -->
+<div class="modal-overlay" id="modalProgram">
+  <div class="modal">
+    <h3 id="progModalTitle">Add Program</h3>
+    <label>Program Code</label>
+    <input id="progCode" placeholder="e.g. BSCS">
+    <label>Program Name</label>
+    <input id="progName" placeholder="e.g. Bachelor of Science in Computer Science">
+    <label>Department</label>
+    <input id="progDept" placeholder="e.g. College of Computer and Information Sciences">
+    <label>Description <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+    <input id="progDesc" placeholder="Brief description">
+    <div id="progMsg" class="msg" style="margin-top:10px"></div>
+    <div class="modal-btns">
+      <button class="btn ghost inline" onclick="closeModal('program')">Cancel</button>
+      <button class="btn inline" onclick="saveProgram()">Save Program</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADD SECTION MODAL (quick-add from sections tab) ── -->
+<div class="modal-overlay" id="modalSection">
+  <div class="modal">
+    <h3>Add Section</h3>
+    <label>Program</label>
+    <select id="secProg"><option value="">-- Select Program --</option></select>
+    <label>Section Name</label>
+    <input id="secName" placeholder="e.g. BSIT 1-1">
+    <label>Year Level</label>
+    <select id="secYear">
+      <option value="1">1st Year</option>
+      <option value="2">2nd Year</option>
+      <option value="3">3rd Year</option>
+      <option value="4">4th Year</option>
+    </select>
+    <label>Semester</label>
+    <select id="secSem">
+      <option value="1">1st Semester</option>
+      <option value="2">2nd Semester</option>
+      <option value="3">Summer</option>
+    </select>
+    <div id="secMsg" class="msg" style="margin-top:10px"></div>
+    <div class="modal-btns">
+      <button class="btn ghost inline" onclick="closeModal('section')">Cancel</button>
+      <button class="btn inline" onclick="saveSection()">Save Section</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+/* ─── Auth ─── */
+const sess = requireRole("faculty");
+const me = findUser("faculty", sess.id);
+document.getElementById("userChip").textContent = me.name + " · " + me.id;
+
+/* ─── Data store helpers ─── */
+// Subjects: array of { id, code, name, program, units, desc }
+// Programs: array of { id, code, name, dept, desc }
+// Sections per professor stored in me.sections = ["BSIT 1-1", ...]
+//   and program-section map: me.programSections = { "BSIT": ["BSIT 1-1", "BSIT 2-1"], ... }
+
+function getSubjects() { return DB.get("subjects_" + me.id, []); }
+function setSubjects(v) { DB.set("subjects_" + me.id, v); }
+
+function getPrograms() {
+  // merge seeded/global programs with professor's own
+  const global = DB.get("programs_global", [
+    { id:"p_BSCS", code:"BSCS", name:"Bachelor of Science in Computer Science", dept:"CICS", desc:"" },
+    { id:"p_BSIT", code:"BSIT", name:"Bachelor of Science in Information Technology", dept:"CICS", desc:"" },
+    { id:"p_DIT",  code:"DIT",  name:"Diploma in Information Technology", dept:"CICS", desc:"" },
+    { id:"p_DOMT", code:"DOMT", name:"Diploma in Office Management Technology", dept:"CBA",  desc:"" },
+    { id:"p_DEET", code:"DEET", name:"Diploma in Electrical Engineering Technology", dept:"CENG", desc:"" }
+  ]);
+  return global;
+}
+function setPrograms(v) { DB.set("programs_global", v); }
+
+function getProgramSections() {
+  // Structure: { "BSIT": ["BSIT 1-1","BSIT 2-1"], "BSCS": [] }
+  const map = DB.get("progSections_" + me.id, {});
+  // Initialise from me.sections for backward compat
+  const myProgs = me.courses || [];
+  myProgs.forEach(p => { if (!map[p]) map[p] = []; });
+  // Also seed from existing me.sections
+  (me.sections || []).forEach(s => {
+    const prog = s.split(" ")[0];
+    if (prog && !map[prog]) map[prog] = [];
+    if (prog && !map[prog].includes(s)) map[prog].push(s);
+  });
+  return map;
+}
+function setProgramSections(v) {
+  DB.set("progSections_" + me.id, v);
+  // Also update me.sections array + me.courses for teacher.html to use
+  const users = DB.get("users", {});
+  const key = "faculty:" + me.id.toUpperCase();
+  const allSecs = Object.values(v).flat();
+  const allProgs = Object.keys(v);
+  if (users[key]) {
+    users[key].sections = allSecs;
+    const mergedCourses = [...new Set([...(users[key].courses || []), ...allProgs])];
+    users[key].courses = mergedCourses;
+    DB.set("users", users);
+    Object.assign(me, users[key]);
+  }
+}
+
+/* ─── Tab switching ─── */
+function switchTab(name, btn) {
+  document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".tab-bar button").forEach(b => b.classList.remove("active"));
+  document.getElementById("tab-" + name).classList.add("active");
+  btn.classList.add("active");
+  if (name === "subjects") renderSubjects();
+  if (name === "programs") renderPrograms();
+  if (name === "sections") renderSections();
+}
+
+/* ─── Modal helpers ─── */
+let editingSubjectId = null;
+let editingProgramId = null;
+
+function openModal(type) {
+  if (type === "subject") {
+    editingSubjectId = null;
+    document.getElementById("subjModalTitle").textContent = "Add Subject";
+    document.getElementById("subjCode").value = "";
+    document.getElementById("subjName").value = "";
+    document.getElementById("subjUnits").value = "3";
+    document.getElementById("subjDesc").value = "";
+    document.getElementById("subjMsg").className = "msg";
+    // Populate programs dropdown
+    const sel = document.getElementById("subjProg");
+    sel.innerHTML = '<option value="">-- All Programs --</option>';
+    getPrograms().forEach(p => sel.add(new Option(p.code + " — " + p.name, p.code)));
+    document.getElementById("modalSubject").classList.add("open");
+    setTimeout(() => document.getElementById("subjCode").focus(), 80);
+  }
+  if (type === "program") {
+    editingProgramId = null;
+    document.getElementById("progModalTitle").textContent = "Add Program";
+    document.getElementById("progCode").value = "";
+    document.getElementById("progName").value = "";
+    document.getElementById("progDept").value = "";
+    document.getElementById("progDesc").value = "";
+    document.getElementById("progMsg").className = "msg";
+    document.getElementById("modalProgram").classList.add("open");
+    setTimeout(() => document.getElementById("progCode").focus(), 80);
+  }
+  if (type === "section") {
+    document.getElementById("secName").value = "";
+    document.getElementById("secMsg").className = "msg";
+    const sel = document.getElementById("secProg");
+    sel.innerHTML = '<option value="">-- Select Program --</option>';
+    getPrograms().forEach(p => sel.add(new Option(p.code + " — " + p.name, p.code)));
+    document.getElementById("modalSection").classList.add("open");
+    setTimeout(() => sel.focus(), 80);
+  }
+}
+
+function closeModal(type) {
+  document.getElementById("modal" + type.charAt(0).toUpperCase() + type.slice(1)).classList.remove("open");
+}
+
+// Close on backdrop click
+document.querySelectorAll(".modal-overlay").forEach(o => {
+  o.addEventListener("click", e => { if (e.target === o) o.classList.remove("open"); });
+});
+
+/* ─── SUBJECTS CRUD ─── */
+function saveSubject() {
+  const msg = document.getElementById("subjMsg");
+  const code = document.getElementById("subjCode").value.trim().toUpperCase();
+  const name = document.getElementById("subjName").value.trim();
+  const prog = document.getElementById("subjProg").value;
+  const units = parseInt(document.getElementById("subjUnits").value) || 3;
+  const desc = document.getElementById("subjDesc").value.trim();
+
+  if (!code) return showMsg(msg, "Subject code is required.", "error");
+  if (!name) return showMsg(msg, "Subject name is required.", "error");
+
+  const subjs = getSubjects();
+  if (editingSubjectId) {
+    const idx = subjs.findIndex(s => s.id === editingSubjectId);
+    if (idx !== -1) subjs[idx] = { ...subjs[idx], code, name, program: prog, units, desc };
+  } else {
+    if (subjs.find(s => s.code === code)) return showMsg(msg, "Subject code already exists.", "error");
+    subjs.push({ id: "subj_" + Date.now(), code, name, program: prog, units, desc });
+  }
+  setSubjects(subjs);
+  closeModal("subject");
+  renderSubjects();
+  updateStats();
+}
+
+function editSubject(id) {
+  const s = getSubjects().find(x => x.id === id);
+  if (!s) return;
+  editingSubjectId = id;
+  document.getElementById("subjModalTitle").textContent = "Edit Subject";
+  document.getElementById("subjCode").value = s.code;
+  document.getElementById("subjName").value = s.name;
+  document.getElementById("subjUnits").value = s.units || 3;
+  document.getElementById("subjDesc").value = s.desc || "";
+  document.getElementById("subjMsg").className = "msg";
+  const sel = document.getElementById("subjProg");
+  sel.innerHTML = '<option value="">-- All Programs --</option>';
+  getPrograms().forEach(p => sel.add(new Option(p.code + " — " + p.name, p.code)));
+  sel.value = s.program || "";
+  document.getElementById("modalSubject").classList.add("open");
+}
+
+function deleteSubject(id) {
+  if (!confirm("Delete this subject?")) return;
+  setSubjects(getSubjects().filter(s => s.id !== id));
+  renderSubjects();
+  updateStats();
+}
+
+function renderSubjects() {
+  const list = getSubjects();
+  const el = document.getElementById("subjList");
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-state"><div class="icon">📖</div><p>No subjects added yet.<br>Click <b>+ Add Subject</b> to get started.</p></div>`;
+    return;
+  }
+  el.innerHTML = `<table class="subj-table">
+    <thead><tr><th>Code</th><th>Subject Name</th><th>Program</th><th>Units</th><th>Description</th><th style="text-align:right">Actions</th></tr></thead>
+    <tbody>${list.map(s => `<tr>
+      <td><strong>${s.code}</strong></td>
+      <td>${s.name}</td>
+      <td>${s.program ? `<span class="badge maroon">${s.program}</span>` : `<span style="color:var(--muted);font-size:12px">All</span>`}</td>
+      <td style="text-align:center">${s.units || 3}</td>
+      <td style="color:var(--muted);font-size:13px">${s.desc || "—"}</td>
+      <td style="text-align:right;white-space:nowrap">
+        <button class="btn inline ghost" style="padding:5px 10px;font-size:12px;margin:0 4px 0 0" onclick="editSubject('${s.id}')">Edit</button>
+        <button class="btn inline danger" style="padding:5px 10px;font-size:12px;margin:0" onclick="deleteSubject('${s.id}')">Delete</button>
+      </td>
+    </tr>`).join("")}</tbody>
+  </table>`;
+}
+
+/* ─── PROGRAMS CRUD ─── */
+function saveProgram() {
+  const msg = document.getElementById("progMsg");
+  const code = document.getElementById("progCode").value.trim().toUpperCase();
+  const name = document.getElementById("progName").value.trim();
+  const dept = document.getElementById("progDept").value.trim();
+  const desc = document.getElementById("progDesc").value.trim();
+
+  if (!code) return showMsg(msg, "Program code is required.", "error");
+  if (!name) return showMsg(msg, "Program name is required.", "error");
+
+  const progs = getPrograms();
+  if (editingProgramId) {
+    const idx = progs.findIndex(p => p.id === editingProgramId);
+    if (idx !== -1) progs[idx] = { ...progs[idx], code, name, dept, desc };
+  } else {
+    if (progs.find(p => p.code === code)) return showMsg(msg, "Program code already exists.", "error");
+    progs.push({ id: "p_" + code, code, name, dept, desc });
+    // init section map for new program
+    const map = getProgramSections();
+    if (!map[code]) map[code] = [];
+    setProgramSections(map);
+  }
+  setPrograms(progs);
+
+  // Also ensure professor's courses list includes this program
+  const users = DB.get("users", {});
+  const key = "faculty:" + me.id.toUpperCase();
+  if (users[key]) {
+    users[key].courses = [...new Set([...(users[key].courses || []), code])];
+    DB.set("users", users);
+    Object.assign(me, users[key]);
+  }
+
+  closeModal("program");
+  renderPrograms();
+  updateStats();
+}
+
+function editProgram(id) {
+  const p = getPrograms().find(x => x.id === id);
+  if (!p) return;
+  editingProgramId = id;
+  document.getElementById("progModalTitle").textContent = "Edit Program";
+  document.getElementById("progCode").value = p.code;
+  document.getElementById("progName").value = p.name;
+  document.getElementById("progDept").value = p.dept || "";
+  document.getElementById("progDesc").value = p.desc || "";
+  document.getElementById("progMsg").className = "msg";
+  document.getElementById("modalProgram").classList.add("open");
+}
+
+function deleteProgram(id) {
+  const p = getPrograms().find(x => x.id === id);
+  if (!p) return;
+  if (!confirm(`Delete program "${p.code}"? Sections under this program will also be removed from your list.`)) return;
+  setPrograms(getPrograms().filter(x => x.id !== id));
+  const map = getProgramSections();
+  delete map[p.code];
+  setProgramSections(map);
+  renderPrograms();
+  updateStats();
+}
+
+function renderPrograms() {
+  const progs = getPrograms();
+  const secMap = getProgramSections();
+  const el = document.getElementById("progList");
+  if (!progs.length) {
+    el.innerHTML = `<div class="empty-state"><div class="icon">🎓</div><p>No programs added yet.<br>Click <b>+ Add Program</b> to get started.</p></div>`;
+    return;
+  }
+  el.innerHTML = `<table class="subj-table">
+    <thead><tr><th>Code</th><th>Program Name</th><th>Department</th><th>Sections</th><th>Description</th><th style="text-align:right">Actions</th></tr></thead>
+    <tbody>${progs.map(p => {
+      const secs = secMap[p.code] || [];
+      const secBadge = secs.length === 0
+        ? `<span class="warn-badge">⚠ None</span>`
+        : `<span class="badge">${secs.length} section${secs.length > 1 ? "s" : ""}</span>`;
+      return `<tr>
+        <td><strong>${p.code}</strong></td>
+        <td>${p.name}</td>
+        <td style="color:var(--muted);font-size:13px">${p.dept || "—"}</td>
+        <td>${secBadge}</td>
+        <td style="color:var(--muted);font-size:13px">${p.desc || "—"}</td>
+        <td style="text-align:right;white-space:nowrap">
+          <button class="btn inline ghost" style="padding:5px 10px;font-size:12px;margin:0 4px 0 0" onclick="editProgram('${p.id}')">Edit</button>
+          <button class="btn inline danger" style="padding:5px 10px;font-size:12px;margin:0" onclick="deleteProgram('${p.id}')">Delete</button>
+        </td>
+      </tr>`;
+    }).join("")}</tbody>
+  </table>`;
+}
+
+/* ─── SECTIONS CRUD ─── */
+function saveSection() {
+  const msg = document.getElementById("secMsg");
+  const prog = document.getElementById("secProg").value;
+  const name = document.getElementById("secName").value.trim();
+
+  if (!prog) return showMsg(msg, "Please select a program.", "error");
+  if (!name) return showMsg(msg, "Section name is required.", "error");
+
+  const map = getProgramSections();
+  if (!map[prog]) map[prog] = [];
+  if (map[prog].includes(name)) return showMsg(msg, "This section already exists under " + prog + ".", "error");
+  map[prog].push(name);
+  setProgramSections(map);
+  closeModal("section");
+  renderSections();
+  updateStats();
+}
+
+function addSectionInline(progCode) {
+  const input = document.getElementById("secInput_" + progCode);
+  const name = (input?.value || "").trim();
+  if (!name) { input.focus(); return; }
+  const map = getProgramSections();
+  if (!map[progCode]) map[progCode] = [];
+  if (map[progCode].includes(name)) { alert("Section already exists."); return; }
+  map[progCode].push(name);
+  setProgramSections(map);
+  renderSections();
+  updateStats();
+}
+
+function deleteSection(progCode, secName) {
+  if (!confirm(`Remove section "${secName}" from ${progCode}?`)) return;
+  const map = getProgramSections();
+  map[progCode] = (map[progCode] || []).filter(s => s !== secName);
+  setProgramSections(map);
+  renderSections();
+  updateStats();
+}
+
+function renderSections() {
+  const progs = getPrograms();
+  const map = getProgramSections();
+  const el = document.getElementById("secList");
+
+  if (!progs.length) {
+    el.innerHTML = `<div class="empty-state"><div class="icon">🏫</div><p>No programs found.<br>Add a program first in the <b>Programs</b> tab.</p></div>`;
+    return;
+  }
+
+  el.innerHTML = progs.map(p => {
+    const secs = map[p.code] || [];
+    const pills = secs.length
+      ? secs.map(s => `<span class="pill">${s}<button class="pill-del" onclick="deleteSection('${p.code}','${s}')" title="Remove">×</button></span>`).join("")
+      : `<span class="no-sections">⚠ No sections yet — add one below.</span>`;
+
+    return `<div class="prog-card">
+      <div class="prog-card-header">
+        <div>
+          <span class="prog-card-name">${p.code}</span>
+          <span style="font-size:13px;color:var(--muted);margin-left:8px">${p.name}</span>
+        </div>
+        ${secs.length === 0
+          ? `<span class="warn-badge">⚠ Needs a section</span>`
+          : `<span class="prog-card-count">${secs.length} section${secs.length > 1 ? "s" : ""}</span>`}
+      </div>
+      <div class="pill-list">${pills}</div>
+      <div class="prog-add-sec">
+        <input id="secInput_${p.code}" placeholder="New section name, e.g. ${p.code} 1-1"
+          onkeydown="if(event.key==='Enter')addSectionInline('${p.code}')">
+        <button class="btn inline" onclick="addSectionInline('${p.code}')">+ Add</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+/* ─── Stats ─── */
+function updateStats() {
+  const subs = getSubjects();
+  const progs = getPrograms();
+  const map = getProgramSections();
+  const totalSecs = Object.values(map).flat().length;
+  const noSec = progs.filter(p => !(map[p.code] || []).length).length;
+  document.getElementById("stSubjects").textContent = subs.length;
+  document.getElementById("stPrograms").textContent = progs.length;
+  document.getElementById("stSections").textContent = totalSecs;
+  document.getElementById("stNoSec").textContent = noSec;
+}
+
+/* ─── Init ─── */
+renderSubjects();
+updateStats();
+</script>
+</body>
+</html>

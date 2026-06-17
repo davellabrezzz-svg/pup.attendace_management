@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Good Governance — PUP Maragondon</title>
+<script src="theme.js"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="navbar">
+  <img class="navbar-logo" src="PUP.jpg" alt="PUP" onerror="this.style.display='none'">
+  <div class="brand">PUP Maragondon<small>Attendance Management System</small></div>
+  <div class="nav-spacer"></div>
+  <a class="nav-link" href="index.html">Home</a>
+  <a class="nav-link" href="good-governance.html" style="background:var(--bg2);color:var(--maroon);">Good Governance</a>
+  <a class="nav-link" href="transparency-seal.html">Transparency Seal</a>
+  <a class="nav-link" href="contact-us.html">Contact Us</a>
+  <button class="theme-toggle" onclick="window.__toggleTheme()" style="margin-left:4px">🌙</button>
+  <span id="authArea"></span>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h1>Good Governance</h1>
+    <div class="sub">PUP Maragondon Branch — accountability, transparency, and public service</div>
+    <p style="color:var(--text2);font-size:14.5px;line-height:1.7;">
+      As a unit of a state university, the PUP Maragondon Branch upholds the principles of
+      good governance set out in Republic Act No. 6713 (Code of Conduct and Ethical Standards
+      for Public Officials and Employees), Republic Act No. 9485 (Anti-Red Tape Act of 2007) as
+      amended by Republic Act No. 11032 (Ease of Doing Business and Efficient Government
+      Service Delivery Act of 2018), and the yearly Transparency Seal provision of the General
+      Appropriations Act. These laws guide how the campus delivers services, handles public
+      funds, and reports its activities to students, faculty, and the community it serves.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>🎯 Vision &amp; Mission</h2>
+    <div class="info-box">
+      <p><b>Vision</b></p>
+      <p>To be recognized as a leading center of inclusive, quality, and innovative higher
+      education that develops globally competitive graduates while remaining rooted in service
+      to the Filipino community.</p>
+    </div>
+    <div class="info-box">
+      <p><b>Mission</b></p>
+      <p>To provide equitable access to higher education and to advance instruction, research,
+      and extension programs that respond to the needs of students and the local community of
+      Maragondon and the wider province of Cavite.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📜 Citizen's Charter</h2>
+    <p style="color:var(--text2);font-size:14px;line-height:1.7;margin-bottom:10px;">
+      The Citizen's Charter is an official document that lists each frontline service offered by
+      the campus — such as registration, records requests, and enrollment assistance — together
+      with the requirements, processing time, fees (if any), and the office responsible.
+    </p>
+    <div class="info-box">
+      <p>📄 <b>Citizen's Charter (current edition)</b></p>
+      <p>Printed copies are posted at the Registrar's Office and the campus bulletin board. A
+      downloadable copy will be linked here once digitized by the Administrative Office.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🛎️ Anti-Red Tape &amp; Public Assistance</h2>
+    <p style="color:var(--text2);font-size:14px;line-height:1.7;">
+      The campus maintains a Public Assistance and Complaints Desk to receive feedback, process
+      requests promptly, and address concerns about service delays in line with the Anti-Red
+      Tape Act. Students and faculty may raise concerns through the channels below.
+    </p>
+    <div class="btn-row">
+      <a class="btn" href="contact-us.html">📞 Go to Contact Us</a>
+      <a class="btn gold" href="transparency-seal.html" style="text-decoration:none;text-align:center;">🔎 View Transparency Seal</a>
+    </div>
+  </div>
+
+</div>
+
+<script src="app.js"></script>
+<script>
+(function(){
+  const sess = DB.get("session", null);
+  const authArea = document.getElementById("authArea");
+  if (sess) {
+    authArea.innerHTML = '<span class="user-chip">'+sess.name+' · '+sess.id+'</span> '
+      + '<a class="nav-link logout" href="#" onclick="event.preventDefault();logout();" style="margin-left:6px;">Log Out</a>';
+  } else {
+    authArea.innerHTML = '<a class="nav-link" href="login.html">Sign In</a>'
+      + '<a class="nav-link logout" href="register.html" style="margin-left:6px;">Register</a>';
+  }
+})();
+</script>
+</body>
+</html>
