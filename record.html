@@ -30,7 +30,7 @@
 
     <div class="info-box">
       <p><b>Teacher:</b> <span id="tName">—</span> &nbsp; <b>Emp No.:</b> <span id="tNo">—</span></p>
-      <p><b>Course:</b> <span id="cName">—</span> &nbsp; <b>Section:</b> <span id="sName">—</span></p>
+      <p><b>Program:</b> <span id="cName">—</span> &nbsp; <b>Section:</b> <span id="sName">—</span></p>
     </div>
 
     <div class="row">
@@ -80,7 +80,7 @@
 <script>
 const sess = requireRole("faculty");
 const cur  = DB.get("currentSession", null);
-if (!cur) { alert("Please choose a course and section first."); window.location.href = "teacher.html"; }
+if (!cur) { alert("Please choose a program and section first."); window.location.href = "teacher.html"; }
 const me       = findUser("faculty", sess.id);
 const students = allUsersByRole("student").filter(s => s.section === cur.section);
 
@@ -197,7 +197,7 @@ function downloadReport(kind) {
     ["Maragondon Branch"],
     [title],
     ["Teacher: " + me.name + " (" + me.id + ")"],
-    ["Course: " + cur.course + "     Section: " + cur.section],
+    ["Program: " + cur.course + "     Section: " + cur.section],
     [],
     ["Date", "Subject", "Student No.", "Student Name", "Status", "Marked By Teacher"]
   ];

@@ -126,34 +126,52 @@ function downloadXLSX(rows, colWidths, sheetName, filename) {
    (only runs if the "users" key has never been set)
 ════════════════════════════════════════════════════════ */
 (function seed() {
-  if (DB.get("users", null) !== null) return; // already seeded or has real users
+  const programList = ["BSCS", "BSIT", "DIT", "DOMT", "DEET"];
+  const sectionList = ["BSIT 1-1"];
+  const studentNames = [
+    "Dave Almher Llabrez",
+    "Benuel Balanlayos",
+    "Ephraim Pagatpatan",
+    "Renato Duag",
+    "Brayne Gumale",
+    "Kris Lawrence Angeles",
+    "Kimara Aguas",
+    "Rysol Kim Reyes",
+    "Ryan Cabacang",
+    "Joshua Ansiboy",
+    "Althea Mendoza"
+  ];
 
   const demo = {
     role: "faculty", id: "T-001",
-    name: "Prof. Juan Dela Cruz",
-    age: "42", bday: "1983-05-10", sex: "Male",
-    email: "jdelacruz@pup.edu.ph", address: "Maragondon, Cavite",
+    name: "Yayeth Evangelista",
+    age: "42", bday: "1983-05-10", sex: "Female",
+    email: "yayeth.evangelista@pup.edu.ph", address: "Maragondon, Cavite",
     passwordHash: hashPassword("teacher123"),
     pinHash: hashPin("1234"),
     qIndexes: [0, 2], qAnswers: ["adobo", "santos"],
-    courses: ["BSIT", "BSCS"],
-    sections: ["BSIT 1-1", "BSIT 2-1"]
+    courses: programList,
+    sections: sectionList
   };
 
-  const demoStudent = {
-    role: "student", id: "2024-00001",
-    name: "Maria Santos",
-    age: "19", bday: "2005-08-12", sex: "Female",
-    email: "msantos@pup.edu.ph", phone: "0917-123-4567",
-    parent: "Ana Santos", address: "Maragondon, Cavite",
-    section: "BSIT 1-1", course: "BSIT",
-    passwordHash: hashPassword("student123"),
-    pinHash: hashPin("1234"),
-    qIndexes: [1, 3], qAnswers: ["whiskers", "manila"]
-  };
+  const seededUsers = DB.get("users", {}) || {};
+  seededUsers[userKey("faculty", "T-001")] = { ...seededUsers[userKey("faculty", "T-001")], ...demo };
 
-  DB.set("users", {
-    [userKey("faculty",  "T-001")]:       demo,
-    [userKey("student",  "2024-00001")]:  demoStudent
+  studentNames.forEach((name, index) => {
+    const id = "2024-" + String(index + 1).padStart(5, "0");
+    const emailName = name.toLowerCase().replace(/[^a-z]+/g, ".").replace(/^\.|\.$/g, "");
+    seededUsers[userKey("student", id)] = {
+      ...seededUsers[userKey("student", id)],
+      role: "student", id, name,
+      age: "19", bday: "2005-08-12", sex: "",
+      email: emailName + "@pup.edu.ph", phone: "09" + String(170000000 + index).slice(0, 9),
+      parent: "", address: "Maragondon, Cavite",
+      section: "BSIT 1-1", course: "BSIT",
+      passwordHash: hashPassword("student123"),
+      pinHash: hashPin("1234"),
+      qIndexes: [1, 3], qAnswers: ["whiskers", "manila"]
+    };
   });
+
+  DB.set("users", seededUsers);
 })();

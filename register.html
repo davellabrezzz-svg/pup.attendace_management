@@ -9,7 +9,7 @@
 </head>
 <body>
 <div class="auth-bg">
-  <form class="auth-card" style="position:relative;max-width:560px;" onsubmit="event.preventDefault(); doRegister();">
+  <form class="auth-card auth-single" style="position:relative;" onsubmit="event.preventDefault(); doRegister();">
     <div style="position:absolute;top:18px;right:18px">
       <button type="button" class="theme-toggle" onclick="window.__toggleTheme()">🌙</button>
     </div>
@@ -52,11 +52,10 @@
       </div>
       <div class="row">
         <div>
-          <label>Course</label>
+          <label>Program</label>
           <select id="course" required>
-            <option value="">-- Select Course --</option>
-            <option>BSIT</option><option>BSCS</option><option>BSBA</option>
-            <option>BSED</option><option>BEED</option><option>BSEntrep</option>
+            <option value="">-- Select Program --</option>
+            <option>BSCS</option><option>BSIT</option><option>DIT</option><option>DOMT</option><option>DEET</option>
           </select>
         </div>
         <div><label>Section</label><input id="section" placeholder="e.g. BSIT 1-1" required></div>
@@ -68,8 +67,8 @@
     <div id="facultyFields" class="hidden">
       <label>Employee Number</label>
       <input id="employeeNo" placeholder="e.g. T-002">
-      <label>Courses Handled <span class="muted">(comma separated)</span></label>
-      <input id="courses" placeholder="BSIT, BSCS">
+      <label>Programs Handled <span class="muted">(comma separated)</span></label>
+      <input id="courses" placeholder="BSCS, BSIT, DIT, DOMT, DEET">
       <label>Sections Handled <span class="muted">(comma separated)</span></label>
       <input id="sections" placeholder="BSIT 1-1, BSIT 2-1">
     </div>
@@ -160,7 +159,7 @@ function doRegister() {
   if (role === "student") {
     id = get("studentNo");
     if (!id)               return showMsg(msg, "Student number is required.", "error");
-    if (!get("course"))    return showMsg(msg, "Course is required.", "error");
+    if (!get("course"))    return showMsg(msg, "Program is required.", "error");
     if (!get("section"))   return showMsg(msg, "Section is required.", "error");
     if (!get("phone"))     return showMsg(msg, "Phone number is required.", "error");
     Object.assign(base, { id, phone: get("phone"), parent: get("parent"),

@@ -20,7 +20,7 @@
 <div class="container">
 
   <div class="stats">
-    <div class="stat"><div class="lbl">My Courses</div><div class="val" id="cCourses">0</div></div>
+    <div class="stat"><div class="lbl">My Programs</div><div class="val" id="cCourses">0</div></div>
     <div class="stat"><div class="lbl">My Sections</div><div class="val" id="cSecs">0</div></div>
     <div class="stat"><div class="lbl">Students (selected sec.)</div><div class="val" id="cStu">0</div></div>
     <div class="stat"><div class="lbl">Records Today</div><div class="val" id="cToday">0</div></div>
@@ -36,8 +36,8 @@
 
     <div class="row">
       <div>
-        <label>Course</label>
-        <select id="course"><option value="">-- Select Course --</option></select>
+        <label>Program</label>
+        <select id="course"><option value="">-- Select Program --</option></select>
       </div>
       <div>
         <label>Section</label>
@@ -76,7 +76,7 @@ document.getElementById("iName").textContent = me.name;
 document.getElementById("iNo").textContent = me.id;
 document.getElementById("iMail").textContent = me.email || "—";
 
-const courses = me.courses && me.courses.length ? me.courses : ["BSIT","BSCS","BSBA"];
+const courses = me.courses && me.courses.length ? me.courses : ["BSCS","BSIT","DIT","DOMT","DEET"];
 const sections = me.sections && me.sections.length ? me.sections : [];
 const cSel = document.getElementById("course");
 const sSel = document.getElementById("section");
@@ -111,7 +111,7 @@ function loadSection() {
 }
 
 function proceed() {
-  if (!cSel.value) { alert("Please select a course."); return; }
+  if (!cSel.value) { alert("Please select a program."); return; }
   if (!sSel.value) { alert("Please select a section."); return; }
   DB.set("currentSession", { course: cSel.value, section: sSel.value, teacherId: me.id });
   window.location.href = "record.html";
