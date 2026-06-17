@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign In — PUP Attendance</title>
+<script src="theme.js"></script>
+<link rel="stylesheet" href="styles.css">
+<style>
+.role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 4px 0 6px; }
+.role-card {
+  border: 2px solid var(--border); border-radius: 9px; padding: 14px 10px;
+  text-align: center; cursor: pointer; transition: var(--transition);
+  background: var(--input-bg);
+}
+.role-card:hover { border-color: var(--maroon); background: var(--card2); }
+.role-card.selected { border-color: var(--maroon); background: var(--card2); box-shadow: 0 0 0 3px rgba(122,0,25,.12); }
+.role-card .ri { font-size: 26px; margin-bottom: 5px; }
+.role-card .rl { font-size: 13px; font-weight: 700; color: var(--text); }
+.pass-wrap { position: relative; }
+.pass-wrap input { padding-right: 44px; }
+.pass-eye { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px; color: var(--muted); padding: 0; width: auto; }
+.demo-tip { background: var(--info-bg); color: var(--info); padding: 10px 13px; border-radius: 7px; font-size: 12px; margin-top: 12px; border-left: 3px solid var(--info); }
+</style>
+</head>
+<body class="auth-bg">
+
+<div class="auth-bg">
+  <div style="position:absolute;top:18px;right:18px;z-index:10">
+    <button class="theme-toggle" onclick="window.__toggleTheme()" title="Toggle theme">🌙</button>
+  </div>
+
+  <form class="auth-card" onsubmit="event.preventDefault(); doLogin();">
+
+    <!-- LEFT: Branding -->
+    <div class="auth-left">
+      <div style="width:120px;height:120px;margin:0 auto 22px;border-radius:50%;overflow:hidden;border:3px solid rgba(245,193,0,0.5);box-shadow:0 0 40px rgba(0,0,0,0.4);background:#7a0019;">
+        <img src="PUP.jpg" alt="PUP Logo" style="width:120px;height:120px;object-fit:cover;display:block;" onerror="this.style.display='none'">
+      </div>
+      <h2 style="font-size:20px;font-weight:900;color:#fff;line-height:1.3;margin-bottom:8px;">Polytechnic University<br>of the Philippines</h2>
+      <p style="font-size:12.5px;color:rgba(255,255,255,0.55);margin-bottom:28px;">Maragondon Branch</p>
+      <div style="border-top:1px solid rgba(255,255,255,0.15);padding-top:24px;width:100%;">
+        <p style="font-size:11.5px;color:rgba(245,193,0,0.75);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">Attendance System</p>
+        <p style="font-size:12px;color:rgba(255,255,255,0.45);line-height:1.7;">"Mula Sa 'Yo,<br>Para sa Bayan"</p>
+      </div>
+    </div>
+
+    <!-- RIGHT: Form -->
+    <div class="auth-right">
+      <div style="margin-bottom:24px;">
+        <h1 style="font-size:22px;font-weight:900;color:var(--maroon);margin-bottom:4px;">Sign In</h1>
+        <p style="font-size:13px;color:var(--muted);">Select your role and enter your credentials.</p>
+      </div>
+
+      <label>Sign in as</label>
+      <div class="role-grid">
+        <div class="role-card" id="rStudent" onclick="selectRole('student')">
+          <div class="ri">🎓</div>
+          <div class="rl">Student</div>
+        </div>
+        <div class="role-card" id="rFaculty" onclick="selectRole('faculty')">
+          <div class="ri">👨‍🏫</div>
+          <div class="rl">Faculty</div>
+        </div>
+      </div>
+      <input type="hidden" id="role">
+
+      <label>User ID</label>
+      <input id="userId" placeholder="Employee No. or Student No." required autocomplete="username">
+
+      <label>Password</label>
+      <div class="pass-wrap">
+        <input id="password" type="password" placeholder="Enter your password" required autocomplete="current-password">
+        <button type="button" class="pass-eye" onclick="toggleEye()">👁</button>
+      </div>
+
+      <button class="btn" type="submit">Sign In →</button>
+      <div id="msg" class="msg"></div>
+
+      <div class="demo-tip">
+        <strong>Demo accounts:</strong><br>
+        Faculty: <code>T-001</code> / <code>teacher123</code><br>
+        Student: <code>2024-00001</code> / <code>student123</code>
+      </div>
+
+      <div class="divider"></div>
+      <p class="center-link"><a href="forgot.html">Forgot Password?</a></p>
+      <p class="center-link">No account? <a href="register.html">Register here</a></p>
+      <p class="center-link"><a href="index.html">← Back to Home</a></p>
+    </div>
+
+  </form>
+</div>
+
+<script src="app.js"></script>
+<script>
+function selectRole(r) {
+  document.getElementById("role").value = r;
+  document.getElementById("rStudent").classList.toggle("selected", r === "student");
+  document.getElementById("rFaculty").classList.toggle("selected", r === "faculty");
+}
+function toggleEye() {
+  const p = document.getElementById("password");
+  p.type = p.type === "password" ? "text" : "password";
+}
+function doLogin() {
+  const role = document.getElementById("role").value;
+  const id   = document.getElementById("userId").value.trim();
+  const pw   = document.getElementById("password").value;
+  const msg  = document.getElementById("msg");
+  if (!role) return showMsg(msg, "Please select Student or Faculty.", "error");
+  if (!id)   return showMsg(msg, "Please enter your User ID.", "error");
+  if (!pw)   return showMsg(msg, "Please enter your password.", "error");
+  const u = findUser(role, id);
+  if (!u) {
+    showMsg(msg, "No account found with that ID. Please register first.", "error");
+    return;
+  }
+  // Support both hashed passwords (new) and legacy plaintext (old accounts)
+  const pwOk = u.passwordHash
+    ? u.passwordHash === hashPassword(pw)
+    : u.password === pw;
+  if (!pwOk) {
+    showMsg(msg, "Incorrect password. Try again or reset it below.", "error");
+    return;
+  }
+  // Migrate plaintext → hashed on successful login
+  if (!u.passwordHash) {
+    u.passwordHash = hashPassword(u.password);
+    delete u.password;
+    saveUser(u);
+  }
+  DB.set("session", { role: u.role, id: u.id, name: u.name });
+  showMsg(msg, "✅ Welcome, " + u.name + "! Redirecting…", "ok");
+  setTimeout(() => window.location.href = role === "faculty" ? "teacher.html" : "student.html", 700);
+}
+document.addEventListener("keydown", e => { if (e.key === "Enter") doLogin(); });
+</script>
+</body>
+</html>

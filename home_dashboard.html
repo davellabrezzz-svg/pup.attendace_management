@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PUP Maragondon — Attendance System</title>
+<script src="theme.js"></script>
+<style>
+/* ── RESET ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#1a1a1a;overflow-x:hidden;}
+a{text-decoration:none;color:inherit;}
+button{font-family:inherit;cursor:pointer;}
+img{display:block;}
+
+/* ════════════════════════════════════
+   CSS VARS (light / dark)
+════════════════════════════════════ */
+:root{
+  --maroon:#7a0019;--maroon2:#5a0012;--maroon3:#9c1030;
+  --gold:#f5c100;--gold2:#c99b00;
+  --bg:#fff;--bg2:#f4f4f4;--card:#fff;
+  --text:#1a1a1a;--text2:#444;--muted:#777;
+  --border:#ddd;--input:#f5f5f5;
+  --shadow:0 2px 14px rgba(0,0,0,.12);
+  --shadow2:0 4px 28px rgba(0,0,0,.18);
+}
+[data-theme="dark"]{
+  --bg:#141014;--bg2:#1e1a1e;--card:#231f23;
+  --text:#f0ecf0;--text2:#c8c0c8;--muted:#8a828a;
+  --border:#3a343a;--input:#2a252a;
+  --shadow:0 2px 14px rgba(0,0,0,.5);
+  --shadow2:0 4px 28px rgba(0,0,0,.6);
+}
+
+/* ════════════════════════════════════
+   1. TOP UTILITY STRIP  (matches PUP site tiny top bar)
+════════════════════════════════════ */
+.top-strip{
+  background:#7a0019;
+  display:flex;align-items:center;
+  padding:0 28px;height:36px;gap:0;
+}
+.top-strip nav{display:flex;align-items:center;gap:0;flex:1;}
+.top-strip nav a{
+  color:rgba(255,255,255,.85);font-size:12.5px;
+  padding:0 14px;height:36px;display:flex;align-items:center;
+  border-right:1px solid rgba(255,255,255,.18);transition:.15s;
+}
+.top-strip nav a:first-child{border-left:1px solid rgba(255,255,255,.18);}
+.top-strip nav a:hover{background:rgba(255,255,255,.15);color:#fff;}
+.top-strip nav a.active{background:rgba(0,0,0,.2);color:#f5c100;font-weight:700;}
+.strip-right{display:flex;align-items:center;gap:8px;}
+/* auth buttons in strip */
+.strip-btn{
+  padding:5px 14px;border-radius:5px;font-size:12px;font-weight:700;
+  border:none;cursor:pointer;transition:.15s;
+}
+.strip-btn-login{background:#f5c100;color:#1a1a1a;}
+.strip-btn-login:hover{background:#c99b00;}
+.strip-btn-reg{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.4);}
+.strip-btn-reg:hover{background:rgba(255,255,255,.3);}
+.strip-toggle{
+  background:transparent;border:none;color:rgba(255,255,255,.75);
+  font-size:15px;padding:2px 6px;transition:.15s;border-radius:4px;
+}
+.strip-toggle:hover{background:rgba(255,255,255,.15);color:#fff;}
+
+/* ════════════════════════════════════
+   2. HEADER BAND  (white, PUP logo + name + search)
+════════════════════════════════════ */
+.site-header{
+  background:var(--bg);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;
+  padding:10px 28px;gap:16px;
+  position:sticky;top:0;z-index:400;
+  box-shadow:var(--shadow);
+  transition:background .3s,border-color .3s;
+}
+.hdr-logo-wrap{display:flex;align-items:center;gap:14px;}
+.hdr-logo{
+  width:78px;height:78px;object-fit:contain;flex-shrink:0;
+  filter:drop-shadow(0 2px 6px rgba(122,0,25,.25));
+}
+.hdr-brand{}
+.hdr-brand-top{
+  font-size:9px;font-weight:700;letter-spacing:.8px;
+  color:var(--maroon);text-transform:uppercase;
+}
+.hdr-brand-name{
+  font-size:17.5px;font-weight:900;color:var(--maroon);
+  text-transform:uppercase;letter-spacing:.5px;line-height:1.2;
+}
+.hdr-brand-sub{font-size:11px;color:var(--text2);font-style:italic;margin-top:1px;}
+.hdr-spacer{flex:1;}
+/* search */
+.hdr-search{
+  display:flex;align-items:center;
+  border:1.5px solid var(--border);border-radius:5px;overflow:hidden;
+  background:var(--input);transition:.3s;
+}
+.hdr-search input{
+  border:none;outline:none;background:transparent;
+  padding:8px 12px;font-size:13px;color:var(--text);width:210px;
+}
+.hdr-search input::placeholder{color:var(--muted);}
+.hdr-search button{
+  background:var(--maroon);color:#fff;border:none;
+  padding:8px 16px;font-size:15px;cursor:pointer;transition:.15s;
+}
+.hdr-search button:hover{background:var(--maroon2);}
+/* header auth buttons */
+.hdr-auth{display:flex;align-items:center;gap:8px;margin-left:12px;}
+.hdr-btn{
+  padding:9px 22px;border-radius:7px;font-size:13px;font-weight:800;
+  border:none;cursor:pointer;transition:.2s;
+}
+.hdr-btn-login{background:var(--maroon);color:#fff;}
+.hdr-btn-login:hover{background:var(--maroon2);transform:translateY(-1px);}
+.hdr-btn-reg{background:var(--gold);color:#1a1a1a;}
+.hdr-btn-reg:hover{background:var(--gold2);transform:translateY(-1px);}
+
+/* ════════════════════════════════════
+   3. MAIN NAV BAR  (bold links like PUP)
+════════════════════════════════════ */
+.main-nav{
+  background:var(--bg);
+  border-bottom:2px solid var(--border);
+  display:flex;align-items:center;
+  padding:0 28px;
+  transition:background .3s,border-color .3s;
+}
+.main-nav a{
+  font-size:13.5px;font-weight:700;color:var(--text);
+  padding:14px 20px;display:block;position:relative;
+  letter-spacing:.2px;transition:.15s;white-space:nowrap;
+  text-transform:uppercase;
+}
+.main-nav a:hover,.main-nav a.active{color:var(--maroon);}
+.main-nav a.active::after{
+  content:'';position:absolute;bottom:0;left:20px;right:20px;
+  height:3px;background:var(--maroon);border-radius:3px 3px 0 0;
+}
+.main-nav .nav-sp{flex:1;}
+.main-nav .nav-att-badge{
+  font-size:11px;color:var(--muted);font-weight:600;
+  border-left:1px solid var(--border);padding-left:16px;margin-left:4px;
+  white-space:nowrap;font-style:italic;
+}
+
+/* ════════════════════════════════════
+   4. HERO SLIDER  (matches PUP hero exactly)
+════════════════════════════════════ */
+.hero{
+  position:relative;overflow:hidden;
+  height:clamp(320px,48vw,520px);
+  background:#5a0012;
+}
+.hero-bg{
+  position:absolute;inset:0;
+  background:url('maragondon.jpg') center/cover no-repeat;
+  opacity:.28;
+}
+.hero-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(80,0,15,.55) 0%,rgba(122,0,25,.80) 60%,rgba(60,0,10,.95) 100%);
+}
+/* side arrows */
+.hero-arrow{
+  position:absolute;top:50%;transform:translateY(-50%);z-index:5;
+  background:rgba(0,0,0,.35);color:#fff;border:none;
+  width:44px;height:80px;font-size:24px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:.2s;
+}
+.hero-arrow:hover{background:rgba(0,0,0,.6);}
+.hero-arrow.left{left:0;border-radius:0 4px 4px 0;}
+.hero-arrow.right{right:0;border-radius:4px 0 0 4px;}
+/* content */
+.hero-body{
+  position:relative;z-index:3;height:100%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:20px;
+}
+.hero-seal-ring{
+  width:150px;height:150px;border-radius:50%;
+  border:3px solid rgba(245,193,0,.65);
+  background:rgba(0,0,0,.25);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:26px;
+  box-shadow:0 0 0 1px rgba(245,193,0,.2),0 0 50px rgba(122,0,25,.5);
+}
+.hero-seal-ring img{width:118px;height:118px;object-fit:contain;}
+.hero-motto{
+  font-size:clamp(18px,3.5vw,28px);font-weight:400;color:#fff;
+  font-style:italic;letter-spacing:.5px;
+  text-shadow:0 2px 12px rgba(0,0,0,.8);
+}
+.hero-motto::before{content:'\201C';}
+.hero-motto::after{content:'\201D';}
+/* dots */
+.hero-dots{
+  position:absolute;bottom:16px;left:50%;transform:translateX(-50%);
+  display:flex;gap:8px;z-index:4;
+}
+.hero-dots span{
+  width:10px;height:10px;border-radius:50%;
+  background:rgba(255,255,255,.35);cursor:pointer;transition:.3s;
+}
+.hero-dots span.on{background:#fff;transform:scale(1.2);}
+
+/* ════════════════════════════════════
+   5. QUICK ACCESS ICONS  (exact PUP layout)
+════════════════════════════════════ */
+.quick{
+  background:var(--bg);
+  border-bottom:1px solid var(--border);
+  padding:38px 28px 34px;
+  transition:background .3s,border-color .3s;
+}
+.quick-inner{
+  max-width:860px;margin:0 auto;
+  display:flex;justify-content:center;
+  gap:clamp(22px,5vw,64px);flex-wrap:wrap;
+}
+.qa{
+  display:flex;flex-direction:column;align-items:center;
+  gap:12px;width:100px;cursor:pointer;transition:.2s;
+}
+.qa:hover{transform:translateY(-4px);}
+.qa-circle{
+  width:76px;height:76px;border-radius:50%;
+  border:2.5px solid var(--maroon);
+  background:transparent;
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;transition:.2s;color:var(--maroon);
+  box-shadow:inset 0 0 0 0 var(--maroon);
+}
+.qa:hover .qa-circle{
+  background:var(--maroon);color:#fff;
+  box-shadow:0 4px 18px rgba(122,0,25,.35);
+}
+.qa-lbl{
+  font-size:12.5px;font-weight:700;color:var(--text);
+  text-align:center;line-height:1.45;
+}
+
+/* ════════════════════════════════════
+   6. CONTENT + SIDEBAR  (PUP-style two-column)
+════════════════════════════════════ */
+.content-area{
+  max-width:1180px;margin:0 auto;
+  display:grid;grid-template-columns:1fr 310px;gap:0;
+  padding:0 28px;
+  transition:background .3s;
+}
+@media(max-width:820px){.content-area{grid-template-columns:1fr;}}
+
+/* Announcements */
+.announce{padding:36px 28px 36px 0;border-right:1px solid var(--border);}
+@media(max-width:820px){.announce{border-right:none;padding-right:0;}}
+.sec-head{
+  display:flex;align-items:center;gap:10px;
+  border-bottom:3px solid var(--maroon);padding-bottom:10px;margin-bottom:22px;
+}
+.sec-head h2{font-size:17px;font-weight:800;color:var(--text);}
+.sec-head a{
+  margin-left:auto;font-size:11.5px;font-weight:700;color:var(--maroon);
+  border:1.5px solid var(--maroon);padding:4px 12px;border-radius:5px;
+  transition:.15s;white-space:nowrap;
+}
+.sec-head a:hover{background:var(--maroon);color:#fff;}
+
+.ann-item{
+  display:flex;gap:14px;padding:14px 0;
+  border-bottom:1px solid var(--border);cursor:pointer;transition:.15s;
+}
+.ann-item:last-child{border-bottom:none;}
+.ann-item:hover{opacity:.8;}
+.ann-date-box{
+  min-width:50px;background:var(--maroon);color:#fff;border-radius:6px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:6px 4px;flex-shrink:0;
+}
+.ann-day{font-size:22px;font-weight:900;line-height:1;}
+.ann-mon{font-size:10px;font-weight:700;letter-spacing:.5px;}
+.ann-text h4{font-size:13.5px;font-weight:800;color:var(--text);margin-bottom:5px;line-height:1.4;}
+.ann-text p{font-size:12px;color:var(--muted);line-height:1.65;}
+
+/* Sidebar */
+.sidebar{padding:36px 0 36px 28px;}
+@media(max-width:820px){.sidebar{padding-left:0;border-top:1px solid var(--border);}}
+.side-widget{margin-bottom:24px;}
+.side-widget-head{
+  background:var(--maroon);color:#fff;
+  font-size:14px;font-weight:800;padding:10px 16px;
+  letter-spacing:.3px;
+}
+.side-widget-body{
+  background:var(--card);border:1px solid var(--border);
+  border-top:none;padding:18px 16px;
+  transition:background .3s,border-color .3s;
+}
+.side-widget-body p{font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6;}
+/* sidebar auth buttons */
+.sw-btn{
+  display:block;width:100%;padding:10px 0;border-radius:6px;
+  font-size:13.5px;font-weight:800;text-align:center;
+  border:none;cursor:pointer;transition:.2s;margin-bottom:9px;
+}
+.sw-btn:last-child{margin-bottom:0;}
+.sw-btn-login{background:var(--maroon);color:#fff;}
+.sw-btn-login:hover{background:var(--maroon2);}
+.sw-btn-reg{background:var(--gold);color:#1a1a1a;}
+.sw-btn-reg:hover{background:var(--gold2);}
+.sw-btn-forgot{background:transparent;color:var(--maroon);border:1.5px solid var(--maroon);}
+.sw-btn-forgot:hover{background:var(--maroon);color:#fff;}
+/* quick links */
+.qlink-list{list-style:none;}
+.qlink-list li{border-bottom:1px solid var(--border);padding:9px 0;display:flex;align-items:center;gap:8px;}
+.qlink-list li:last-child{border-bottom:none;}
+.qlink-list li::before{content:'▶';color:var(--maroon);font-size:9px;flex-shrink:0;}
+.qlink-list a{font-size:13px;font-weight:600;color:var(--text);transition:.15s;}
+.qlink-list a:hover{color:var(--maroon);}
+
+/* ════════════════════════════════════
+   7. FOOTER  (dark maroon, PUP-style)
+════════════════════════════════════ */
+.site-footer{background:#2a0008;}
+.footer-main{
+  max-width:1180px;margin:0 auto;
+  display:flex;align-items:center;flex-wrap:wrap;gap:16px;
+  padding:22px 28px;
+}
+.footer-logo{display:flex;align-items:center;gap:12px;}
+.footer-logo img{width:42px;height:42px;object-fit:contain;opacity:.85;}
+.footer-logo-txt .fn{font-size:13px;font-weight:800;color:#fff;}
+.footer-logo-txt .fs{font-size:11px;color:rgba(255,255,255,.45);}
+.footer-sp{flex:1;}
+.footer-links{display:flex;gap:18px;flex-wrap:wrap;}
+.footer-links a{font-size:12px;color:rgba(255,255,255,.45);transition:.15s;}
+.footer-links a:hover{color:var(--gold);}
+.footer-copy{
+  background:#1a0006;text-align:center;
+  font-size:11px;color:rgba(255,255,255,.3);padding:10px;
+  letter-spacing:.5px;
+}
+
+/* ════════════════════════════════════
+   DARK MODE TWEAKS
+════════════════════════════════════ */
+[data-theme="dark"] .qa-lbl{color:var(--text);}
+[data-theme="dark"] .ann-text h4{color:var(--text);}
+[data-theme="dark"] .sec-head h2{color:var(--text);}
+[data-theme="dark"] .side-widget-body{background:var(--card);}
+[data-theme="dark"] .hero-bg{opacity:.15;}
+</style>
+</head>
+<body>
+
+<!-- ① TOP UTILITY STRIP -->
+<div class="top-strip">
+  <nav>
+    <a href="index.html" class="active">Home</a>
+    <a href="#">Good Governance</a>
+    <a href="#">Transparency Seal</a>
+    <a href="#">Bid Notices and Invitation</a>
+    <a href="#">Contact Us</a>
+  </nav>
+  <div class="strip-right">
+    <button class="strip-toggle theme-toggle" onclick="window.__toggleTheme()" title="Toggle theme">🌙</button>
+    <a href="login.html">    <button class="strip-btn strip-btn-login">Sign In</button></a>
+    <a href="register.html"><button class="strip-btn strip-btn-reg">Register</button></a>
+  </div>
+</div>
+
+<!-- ② SITE HEADER  (sticky) -->
+<header class="site-header">
+  <div class="hdr-logo-wrap">
+    <img src="PUP.jpg" alt="PUP Seal" class="hdr-logo" onerror="this.style.display='none'">
+    <div class="hdr-brand">
+      <div class="hdr-brand-top">Republic of the Philippines</div>
+      <div class="hdr-brand-name">Polytechnic University<br>of the Philippines</div>
+      <div class="hdr-brand-sub">The Country's 1st Polytechnic U — Maragondon Branch</div>
+    </div>
+  </div>
+  <div class="hdr-spacer"></div>
+  <div class="hdr-search">
+    <input type="text" placeholder="Type keyword here...">
+    <button title="Search">🔍</button>
+  </div>
+  <div class="hdr-auth">
+    <a href="login.html">   <button class="hdr-btn hdr-btn-login">Sign In</button></a>
+    <a href="register.html"><button class="hdr-btn hdr-btn-reg">Register</button></a>
+  </div>
+</header>
+
+<!-- ③ MAIN NAV -->
+<nav class="main-nav">
+  <a href="#">About PUP</a>
+  <a href="#">Academic</a>
+  <a href="#" class="active">Students</a>
+  <a href="#">Research</a>
+  <a href="#">SDGs</a>
+  <div class="nav-sp"></div>
+  <span class="nav-att-badge">Attendance Management System v2.0</span>
+</nav>
+
+<!-- ④ HERO SLIDER -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+
+  <!-- Arrows -->
+  <button class="hero-arrow left" onclick="prevSlide()">&#8249;</button>
+  <button class="hero-arrow right" onclick="nextSlide()">&#8250;</button>
+
+  <!-- Content -->
+  <div class="hero-body">
+    <div class="hero-seal-ring">
+      <img src="PUP.jpg" alt="PUP Seal" onerror="this.style.opacity='.3'">
+    </div>
+    <div class="hero-motto" id="heroMotto">Mula Sa &#8216;Yo, Para sa Bayan</div>
+  </div>
+
+  <!-- Dots -->
+  <div class="hero-dots">
+    <span class="on" onclick="goSlide(0)"></span>
+    <span onclick="goSlide(1)"></span>
+    <span onclick="goSlide(2)"></span>
+  </div>
+</section>
+
+<!-- ⑤ QUICK ACCESS ICONS -->
+<section class="quick">
+  <div class="quick-inner">
+    <div class="qa" onclick="location.href='login.html'">
+      <div class="qa-circle">🔐</div>
+      <div class="qa-lbl">Sign In</div>
+    </div>
+    <div class="qa" onclick="location.href='register.html'">
+      <div class="qa-circle">✏️</div>
+      <div class="qa-lbl">Register Account</div>
+    </div>
+    <div class="qa" onclick="location.href='student.html'">
+      <div class="qa-circle">🎓</div>
+      <div class="qa-lbl">Student Portal</div>
+    </div>
+    <div class="qa" onclick="location.href='teacher.html'">
+      <div class="qa-circle">🏫</div>
+      <div class="qa-lbl">Faculty Dashboard</div>
+    </div>
+    <div class="qa" onclick="location.href='record.html'">
+      <div class="qa-circle">📋</div>
+      <div class="qa-lbl">Attendance Records</div>
+    </div>
+  </div>
+</section>
+
+<!-- ⑥ CONTENT + SIDEBAR -->
+<div class="content-area">
+
+  <!-- Announcements (main column) -->
+  <div class="announce">
+    <div class="sec-head">
+      <h2>Announcements and Advisories</h2>
+      <a href="#">See All</a>
+    </div>
+
+    <div class="ann-item">
+      <div class="ann-date-box"><div class="ann-day">17</div><div class="ann-mon">JUN 2026</div></div>
+      <div class="ann-text">
+        <h4>Attendance System Now Live for AY 2026–2027</h4>
+        <p>All faculty and students must register and use the new attendance portal starting this semester. Daily records are tracked automatically per subject and section.</p>
+      </div>
+    </div>
+
+    <div class="ann-item">
+      <div class="ann-date-box"><div class="ann-day">15</div><div class="ann-mon">JUN 2026</div></div>
+      <div class="ann-text">
+        <h4>Registration Open for New and Continuing Students</h4>
+        <p>Students may create portal accounts using their official PUP student number. Contact the registrar's office for your credentials and section assignment.</p>
+      </div>
+    </div>
+
+    <div class="ann-item">
+      <div class="ann-date-box"><div class="ann-day">10</div><div class="ann-mon">JUN 2026</div></div>
+      <div class="ann-text">
+        <h4>Faculty: CSV Export Feature Available</h4>
+        <p>Daily and weekly attendance reports can now be downloaded as clean, Excel-compatible CSV files directly from the Attendance Record page — no garbled symbols.</p>
+      </div>
+    </div>
+
+    <div class="ann-item">
+      <div class="ann-date-box"><div class="ann-day">05</div><div class="ann-mon">JUN 2026</div></div>
+      <div class="ann-text">
+        <h4>System Maintenance Advisory</h4>
+        <p>Routine maintenance every Sunday, 11:00 PM to 1:00 AM. Please save all records before this window. The system will be unavailable during this period.</p>
+      </div>
+    </div>
+
+    <div class="ann-item">
+      <div class="ann-date-box"><div class="ann-day">01</div><div class="ann-mon">JUN 2026</div></div>
+      <div class="ann-text">
+        <h4>Security Reminder: Update Your PIN</h4>
+        <p>Students and faculty are reminded to update their recovery PIN and security questions through the Account Recovery page. Protect your attendance records.</p>
+      </div>
+    </div>
+  </div><!-- /announce -->
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+
+    <!-- Login Widget -->
+    <div class="side-widget">
+      <div class="side-widget-head">Quick Access — Attendance Portal</div>
+      <div class="side-widget-body">
+        <p>Sign in to mark attendance, view records, or manage your class. New users may register below.</p>
+        <a href="login.html">   <button class="sw-btn sw-btn-login">🔐 Sign In to Account</button></a>
+        <a href="register.html"><button class="sw-btn sw-btn-reg">📝 Create New Account</button></a>
+        <a href="forgot.html">  <button class="sw-btn sw-btn-forgot">🔑 Forgot PIN / Password</button></a>
+      </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="side-widget">
+      <div class="side-widget-head">Quick Links</div>
+      <div class="side-widget-body" style="padding:0 16px;">
+        <ul class="qlink-list">
+          <li><a href="student.html">Student Attendance Portal</a></li>
+          <li><a href="teacher.html">Faculty Dashboard</a></li>
+          <li><a href="record.html">Mark Attendance</a></li>
+          <li><a href="register.html">Create an Account</a></li>
+          <li><a href="forgot.html">Account Recovery</a></li>
+          <li><a href="https://www.pup.edu.ph" target="_blank">PUP Main Website</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Contact Widget -->
+    <div class="side-widget">
+      <div class="side-widget-head">Contact Information</div>
+      <div class="side-widget-body">
+        <p style="margin-bottom:0;font-size:13px;line-height:1.85;color:var(--muted);">
+          <strong style="color:var(--text);display:block;margin-bottom:4px;">PUP Maragondon Branch</strong>
+          Bucal, Maragondon, Cavite<br>
+          <a href="https://pup.edu.ph" style="color:var(--maroon);font-weight:700;">pup.edu.ph</a><br>
+          Tel: (046) 513-0095
+        </p>
+      </div>
+    </div>
+
+  </div><!-- /sidebar -->
+</div><!-- /content-area -->
+
+<!-- ⑦ FOOTER -->
+<footer class="site-footer">
+  <div class="footer-main">
+    <div class="footer-logo">
+      <img src="PUP.jpg" alt="PUP" onerror="this.style.display='none'">
+      <div class="footer-logo-txt">
+        <div class="fn">Polytechnic University of the Philippines</div>
+        <div class="fs">Maragondon Branch — Attendance System</div>
+      </div>
+    </div>
+    <div class="footer-sp"></div>
+    <div class="footer-links">
+      <a href="#">Terms of Use</a>
+      <a href="#">Privacy Statement</a>
+      <a href="#">About PUPWebSite</a>
+      <a href="https://pup.edu.ph" target="_blank">pup.edu.ph</a>
+    </div>
+  </div>
+  <div class="footer-copy">© 1998–2026 POLYTECHNIC UNIVERSITY OF THE PHILIPPINES</div>
+</footer>
+
+<script src="theme.js"></script>
+<script>
+// ── Slider ──────────────────────────────────────
+const mottos = [
+  "Mula Sa \u2018Yo, Para sa Bayan",
+  "Dedicated to Academic Excellence",
+  "PUP Maragondon \u2014 Serving the Community"
+];
+let slide = 0;
+const mottoPara = document.getElementById('heroMotto');
+const dotEls = document.querySelectorAll('.hero-dots span');
+
+function goSlide(n) {
+  dotEls[slide].classList.remove('on');
+  slide = (n + mottos.length) % mottos.length;
+  dotEls[slide].classList.add('on');
+  mottoPara.style.opacity = '0';
+  setTimeout(() => { mottoPara.textContent = '\u201C' + mottos[slide] + '\u201D'; mottoPara.style.opacity='1'; }, 300);
+}
+function nextSlide(){ goSlide(slide + 1); }
+function prevSlide(){ goSlide(slide - 1); }
+mottoPara.style.transition = 'opacity .3s';
+
+// Auto-advance
+let autoTimer = setInterval(nextSlide, 4000);
+document.querySelectorAll('.hero-arrow,.hero-dots span').forEach(el =>
+  el.addEventListener('click', () => { clearInterval(autoTimer); autoTimer = setInterval(nextSlide,4000); })
+);
+</script>
+</body>
+</html>

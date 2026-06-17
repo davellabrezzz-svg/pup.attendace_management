@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register — PUP Attendance</title>
+<script src="theme.js"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="auth-bg">
+  <form class="auth-card" style="position:relative;max-width:560px;" onsubmit="event.preventDefault(); doRegister();">
+    <div style="position:absolute;top:18px;right:18px">
+      <button type="button" class="theme-toggle" onclick="window.__toggleTheme()">🌙</button>
+    </div>
+    <div class="auth-header">
+      <div class="logo-ring">
+        <img src="PUP.jpg" alt="PUP Logo" onerror="this.style.display='none'">
+      </div>
+      <h1>Create an Account</h1>
+      <p>Register as Student or Faculty</p>
+    </div>
+
+    <label>Register as</label>
+    <select id="role" required onchange="toggleRole()">
+      <option value="">-- Select --</option>
+      <option value="student">Student</option>
+      <option value="faculty">Faculty / Teacher</option>
+    </select>
+
+    <div id="commonFields" class="hidden">
+      <div class="row">
+        <div><label>Full Name</label><input id="name" required></div>
+        <div><label>Sex</label>
+          <select id="sex"><option>Male</option><option>Female</option><option>Other</option></select>
+        </div>
+      </div>
+      <div class="row">
+        <div><label>Age</label><input id="age" type="number" min="10" max="99"></div>
+        <div><label>Birthday</label><input id="bday" type="date"></div>
+      </div>
+      <div class="row">
+        <div><label>Email</label><input id="email" type="email" required></div>
+        <div><label>Address</label><input id="address"></div>
+      </div>
+    </div>
+
+    <div id="studentFields" class="hidden">
+      <div class="row">
+        <div><label>Student Number</label><input id="studentNo" placeholder="e.g. 2024-00001" required></div>
+        <div><label>Phone Number</label><input id="phone" placeholder="09xx-xxx-xxxx" required></div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Course</label>
+          <select id="course" required>
+            <option value="">-- Select Course --</option>
+            <option>BSIT</option><option>BSCS</option><option>BSBA</option>
+            <option>BSED</option><option>BEED</option><option>BSEntrep</option>
+          </select>
+        </div>
+        <div><label>Section</label><input id="section" placeholder="e.g. BSIT 1-1" required></div>
+      </div>
+      <label>Parent / Guardian Name</label>
+      <input id="parent">
+    </div>
+
+    <div id="facultyFields" class="hidden">
+      <label>Employee Number</label>
+      <input id="employeeNo" placeholder="e.g. T-002">
+      <label>Courses Handled <span class="muted">(comma separated)</span></label>
+      <input id="courses" placeholder="BSIT, BSCS">
+      <label>Sections Handled <span class="muted">(comma separated)</span></label>
+      <input id="sections" placeholder="BSIT 1-1, BSIT 2-1">
+    </div>
+
+    <div id="authFields" class="hidden">
+      <div class="divider"></div>
+      <label>Password</label>
+      <input id="password" type="password" required minlength="6" placeholder="At least 6 characters">
+      <label>Re-enter Password</label>
+      <input id="password2" type="password" required minlength="6">
+
+      <label>4-digit Security PIN <span class="muted">(used for recovery)</span></label>
+      <input id="pin" type="password" pattern="\d{4}" maxlength="4" placeholder="••••" required>
+
+      <div class="questions-block">
+        <b style="font-size:13px;color:var(--maroon);">2-Step Verification — pick TWO questions</b>
+        <div id="qPicker"></div>
+      </div>
+    </div>
+
+    <button class="btn" type="submit">Create Account</button>
+    <div id="msg" class="msg"></div>
+
+    <p class="center-link"><a href="login.html">← Back to Login</a></p>
+  </form>
+</div>
+
+<script src="app.js"></script>
+<script>
+function toggleRole() {
+  const r = document.getElementById("role").value;
+  document.getElementById("commonFields").classList.toggle("hidden", !r);
+  document.getElementById("authFields").classList.toggle("hidden", !r);
+  document.getElementById("studentFields").classList.toggle("hidden", r !== "student");
+  document.getElementById("facultyFields").classList.toggle("hidden", r !== "faculty");
+  if (r && !document.getElementById("qPicker").dataset.built) {
+    const picker = document.getElementById("qPicker");
+    picker.dataset.built = "1";
+    picker.innerHTML = SECURITY_QUESTIONS.map((q, i) => `
+      <p><label style="font-weight:500;font-size:13px;">
+        <input type="checkbox" class="qcheck" data-i="${i}" style="width:auto;margin-right:6px;vertical-align:middle;">
+        ${q}
+      </label>
+      <input class="qans" data-i="${i}" placeholder="Your answer" style="display:none;margin-top:4px;"></p>
+    `).join("");
+    picker.addEventListener("change", e => {
+      if (e.target.classList.contains("qcheck")) {
+        const checked = picker.querySelectorAll(".qcheck:checked");
+        if (checked.length > 2) { e.target.checked = false; return; }
+        const ans = picker.querySelector(`.qans[data-i="${e.target.dataset.i}"]`);
+        ans.style.display = e.target.checked ? "block" : "none";
+        if (!e.target.checked) ans.value = "";
+      }
+    });
+  }
+}
+
+function doRegister() {
+  const role = document.getElementById("role").value;
+  const msg  = document.getElementById("msg");
+  const get  = id => (document.getElementById(id)?.value || "").trim();
+
+  if (!role) return showMsg(msg, "Select a role.", "error");
+  const name = get("name"), email = get("email");
+  if (!name)  return showMsg(msg, "Full name is required.", "error");
+  if (!email) return showMsg(msg, "Email is required.", "error");
+
+  const pw  = get("password"), pw2 = get("password2"), pin = get("pin");
+  if (pw.length < 6)          return showMsg(msg, "Password must be at least 6 characters.", "error");
+  if (pw !== pw2)             return showMsg(msg, "Passwords do not match.", "error");
+  if (!/^\d{4}$/.test(pin))  return showMsg(msg, "PIN must be exactly 4 digits.", "error");
+
+  const checked = [...document.querySelectorAll(".qcheck:checked")];
+  if (checked.length !== 2) return showMsg(msg, "Pick exactly 2 security questions.", "error");
+  const qIndexes = checked.map(c => +c.dataset.i);
+  const qAnswers = qIndexes.map(i => (document.querySelector(`.qans[data-i="${i}"]`).value || "").trim().toLowerCase());
+  if (qAnswers.some(a => !a)) return showMsg(msg, "Please answer both security questions.", "error");
+
+  let id;
+  const base = {
+    role, name, email,
+    sex: get("sex"), age: get("age"), bday: get("bday"), address: get("address"),
+    passwordHash: hashPassword(pw),
+    pinHash: hashPin(pin),
+    qIndexes, qAnswers
+  };
+
+  if (role === "student") {
+    id = get("studentNo");
+    if (!id)               return showMsg(msg, "Student number is required.", "error");
+    if (!get("course"))    return showMsg(msg, "Course is required.", "error");
+    if (!get("section"))   return showMsg(msg, "Section is required.", "error");
+    if (!get("phone"))     return showMsg(msg, "Phone number is required.", "error");
+    Object.assign(base, { id, phone: get("phone"), parent: get("parent"),
+                          course: get("course"), section: get("section") });
+  } else {
+    id = get("employeeNo");
+    if (!id) return showMsg(msg, "Employee number is required.", "error");
+    Object.assign(base, {
+      id,
+      courses:  get("courses").split(",").map(s => s.trim()).filter(Boolean),
+      sections: get("sections").split(",").map(s => s.trim()).filter(Boolean)
+    });
+  }
+
+  if (findUser(role, id)) return showMsg(msg, "That ID is already registered. Please log in.", "error");
+
+  saveUser(base);
+  showMsg(msg, "✅ Account created! Redirecting to login…", "ok");
+  setTimeout(() => window.location.href = "login.html", 900);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attendance Record — PUP Attendance</title>
+<script src="theme.js"></script>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+<div class="navbar no-print">
+  <img class="navbar-logo" src="PUP.jpg" alt="PUP" onerror="this.style.display='none'">
+  <div class="brand">PUP Attendance<small>Attendance Record</small></div>
+  <div class="nav-spacer"></div>
+  <a class="nav-link" href="teacher.html">← Back</a>
+  <button class="theme-toggle" onclick="window.__toggleTheme()" style="margin-right:4px">🌙</button>
+  <a class="nav-link logout" href="#" onclick="event.preventDefault();logout();">Log Out</a>
+</div>
+
+<div class="container">
+  <div class="print-only" style="text-align:center;margin-bottom:18px;">
+    <h2 style="color:var(--maroon);">Polytechnic University of the Philippines</h2>
+    <p>Maragondon Branch — Official Attendance Report</p>
+  </div>
+
+  <div class="card">
+    <h1>Attendance Record</h1>
+    <div class="sub">Mark attendance per student. Download daily or weekly reports as Excel files.</div>
+
+    <div class="info-box">
+      <p><b>Teacher:</b> <span id="tName">—</span> &nbsp; <b>Emp No.:</b> <span id="tNo">—</span></p>
+      <p><b>Course:</b> <span id="cName">—</span> &nbsp; <b>Section:</b> <span id="sName">—</span></p>
+    </div>
+
+    <div class="row">
+      <div><label>Date</label><input id="recDate" type="date"></div>
+      <div><label>Subject</label>
+        <select id="subject">
+          <option value="">-- Select Subject --</option>
+          <option>Programming 1</option><option>Data Structures</option>
+          <option>Web Development</option><option>Database Systems</option>
+          <option>Networking</option><option>Software Engineering</option>
+          <option>Discrete Math</option><option>PE / NSTP</option>
+        </select>
+      </div>
+    </div>
+
+    <table>
+      <thead><tr>
+        <th style="width:50px">#</th>
+        <th>Student Name</th>
+        <th>Student No.</th>
+        <th style="width:170px">Status</th>
+        <th style="width:90px">Mark</th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+
+    <div class="btn-row no-print">
+      <button class="btn success" onclick="markAllPresent()">✓ Mark All Present</button>
+      <button class="btn" onclick="save()">💾 Save Attendance</button>
+      <button class="btn alt" onclick="downloadReport('daily')">⬇ Daily Report (Excel)</button>
+      <button class="btn alt" onclick="downloadReport('weekly')">⬇ Weekly Report (Excel)</button>
+      <button class="btn ghost" onclick="window.print()">🖨 Print</button>
+    </div>
+    <div id="msg" class="msg"></div>
+  </div>
+
+  <div class="card">
+    <h2>Recent Saved Records (this section)</h2>
+    <table>
+      <thead><tr><th>Date</th><th>Subject</th><th>Student</th><th>Status</th></tr></thead>
+      <tbody id="recent"></tbody>
+    </table>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+const sess = requireRole("faculty");
+const cur  = DB.get("currentSession", null);
+if (!cur) { alert("Please choose a course and section first."); window.location.href = "teacher.html"; }
+const me       = findUser("faculty", sess.id);
+const students = allUsersByRole("student").filter(s => s.section === cur.section);
+
+document.getElementById("tName").textContent = me.name;
+document.getElementById("tNo").textContent   = me.id;
+document.getElementById("cName").textContent = cur.course;
+document.getElementById("sName").textContent = cur.section;
+document.getElementById("recDate").value     = today();
+
+const rowsEl = document.getElementById("rows");
+if (!students.length) {
+  rowsEl.innerHTML = '<tr><td colspan="5" class="empty">No students registered in this section yet.</td></tr>';
+} else {
+  rowsEl.innerHTML = students.map((s, i) => `
+    <tr data-id="${s.id}" data-name="${s.name}">
+      <td>${i + 1}</td><td>${s.name}</td><td>${s.id}</td>
+      <td><select class="status">
+        <option value="P">P — Present</option>
+        <option value="A">A — Absent</option>
+        <option value="L">L — Late</option>
+      </select></td>
+      <td style="text-align:center;">
+        <input type="checkbox" class="mark" style="width:auto;transform:scale(1.3);">
+      </td>
+    </tr>`).join("");
+}
+
+function markAllPresent() {
+  document.querySelectorAll("#rows .status").forEach(s => s.value = "P");
+  document.querySelectorAll("#rows .mark").forEach(c => c.checked = true);
+}
+
+function collect() {
+  const date    = document.getElementById("recDate").value || today();
+  const subject = document.getElementById("subject").value || "(General)";
+  const records = [...document.querySelectorAll("#rows tr[data-id]")].map(tr => ({
+    date, subject,
+    teacher: me.id, teacherName: me.name,
+    section: cur.section, course: cur.course,
+    studentId:   tr.dataset.id,
+    studentName: tr.dataset.name,
+    status: tr.querySelector(".status").value,
+    mark:   tr.querySelector(".mark").checked ? "Yes" : "No",
+    ts: Date.now()
+  }));
+  return { date, subject, records };
+}
+
+function save() {
+  const msg     = document.getElementById("msg");
+  const subject = document.getElementById("subject").value;
+  if (!subject) return showMsg(msg, "Please choose a subject before saving.", "error");
+  const { date, records } = collect();
+  if (!records.length)  return showMsg(msg, "No students to save.", "error");
+  const all      = DB.get("attendance", []);
+  // Remove existing rows for same date/section/subject/student (overwrite with latest)
+  const filtered = all.filter(r =>
+    !(r.date === date && r.section === cur.section && r.subject === subject &&
+      records.some(n => n.studentId === r.studentId))
+  );
+  DB.set("attendance", filtered.concat(records));
+  showMsg(msg, "✓ Saved attendance for " + records.length + " students on " + fmtDate(date), "ok");
+  renderRecent();
+}
+
+function renderRecent() {
+  const list = DB.get("attendance", [])
+    .filter(r => r.section === cur.section)
+    .sort((a, b) => (b.ts || 0) - (a.ts || 0))
+    .slice(0, 30);
+  const body = document.getElementById("recent");
+  if (!list.length) {
+    body.innerHTML = '<tr><td colspan="4" class="empty">No saved records yet.</td></tr>';
+    return;
+  }
+  body.innerHTML = list.map(r => `<tr>
+    <td>${fmtDate(r.date)}</td>
+    <td>${r.subject || "—"}</td>
+    <td>${r.studentName}</td>
+    <td><span class="badge ${r.status}">${r.status==="P"?"Present":r.status==="A"?"Absent":"Late"}</span></td>
+  </tr>`).join("");
+}
+renderRecent();
+
+/* ── Download report as Excel (.xlsx) with wide columns ── */
+function downloadReport(kind) {
+  const all       = DB.get("attendance", []).filter(r => r.section === cur.section);
+  const dateInput = document.getElementById("recDate").value || today();
+  let entries, title, filename;
+
+  if (kind === "daily") {
+    entries  = all.filter(r => r.date === dateInput);
+    title    = "Daily Attendance Report — " + dateInput;
+    filename = "attendance_daily_" + cur.section.replace(/\s+/g, "_") + "_" + dateInput + ".xlsx";
+  } else {
+    const end   = new Date(dateInput);
+    const start = new Date(end);
+    start.setDate(end.getDate() - 6);
+    const s0 = start.toISOString().slice(0, 10);
+    const e0 = end.toISOString().slice(0, 10);
+    entries  = all.filter(r => r.date >= s0 && r.date <= e0);
+    title    = "Weekly Attendance Report — " + s0 + " to " + e0;
+    filename = "attendance_weekly_" + cur.section.replace(/\s+/g, "_") + "_" + dateInput + ".xlsx";
+  }
+
+  if (!entries.length) {
+    alert("No saved attendance records found for this " + kind + " period.\nPlease save attendance first.");
+    return;
+  }
+
+  // ── Build sheet rows ──
+  const rows = [
+    ["Polytechnic University of the Philippines"],
+    ["Maragondon Branch"],
+    [title],
+    ["Teacher: " + me.name + " (" + me.id + ")"],
+    ["Course: " + cur.course + "     Section: " + cur.section],
+    [],
+    ["Date", "Subject", "Student No.", "Student Name", "Status", "Marked By Teacher"]
+  ];
+
+  entries.forEach(r => {
+    const status = r.status === "P" ? "Present" : r.status === "A" ? "Absent" : "Late";
+    rows.push([r.date, r.subject || "", r.studentId, r.studentName, status, r.mark || "No"]);
+  });
+
+  // ── Summary section ──
+  rows.push([], ["SUMMARY"]);
+  rows.push(["", "", "Student No.", "Student Name", "Present", "Absent", "Late", "Total Sessions", "Attendance %"]);
+
+  const byStu = {};
+  entries.forEach(r => {
+    if (!byStu[r.studentId]) byStu[r.studentId] = { name: r.studentName, P: 0, A: 0, L: 0, T: 0 };
+    if (r.status === "P") byStu[r.studentId].P++;
+    else if (r.status === "A") byStu[r.studentId].A++;
+    else byStu[r.studentId].L++;
+    byStu[r.studentId].T++;
+  });
+  Object.entries(byStu).forEach(([id, v]) => {
+    const pct = v.T > 0 ? Math.round((v.P / v.T) * 100) + "%" : "0%";
+    rows.push(["", "", id, v.name, v.P, v.A, v.L, v.T, pct]);
+  });
+
+  // ── Column widths (characters) — wide enough for all content ──
+  const colWidths = [16, 30, 18, 30, 12, 18, 12, 16, 14];
+
+  downloadXLSX(rows, colWidths, "Attendance", filename);
+}
+</script>
+</body>
+</html>

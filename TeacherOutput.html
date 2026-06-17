@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Teacher Dashboard</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+  body{background:maroon;min-height:100vh}
+  .navbar{background:white;height:80px;display:flex;align-items:center;padding:0 30px;gap:15px;box-shadow:0 2px 5px rgba(0,0,0,.15)}
+  .navbar-logo{width:55px;height:55px;object-fit:contain}
+  .logo-title{color:maroon;font-size:26px;font-weight:bold}
+  .nav-spacer{flex:1}
+  .nav-link{color:maroon;text-decoration:none;font-weight:bold}
+  .container{width:95%;max-width:1100px;margin:30px auto}
+  .card{background:white;border-radius:10px;padding:25px;box-shadow:0 2px 8px rgba(0,0,0,.15);margin-bottom:20px}
+  h1{color:maroon;margin-bottom:15px}
+  h2{color:#333;margin-bottom:15px;font-size:20px}
+  label{font-weight:bold;color:#333;font-size:14px}
+  select,input{width:100%;padding:12px;margin:6px 0 15px;border:1px solid #ccc;border-radius:5px}
+  button{background:maroon;color:white;border:none;padding:12px 20px;border-radius:5px;cursor:pointer;font-size:16px}
+  button:hover{background:#8b0000}
+  .teacher-box{background:white;padding:18px;border-radius:10px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.15);border-left:5px solid maroon}
+  .teacher-box p{margin:6px 0;font-size:17px}
+  table{width:100%;border-collapse:collapse;margin-top:15px}
+  th{background:maroon;color:white;padding:12px;text-align:left}
+  td{padding:12px;border:1px solid #ddd}
+  tr:nth-child(even){background:#f5f5f5}
+  .info-box{margin-top:25px;background:#fafafa;border-left:5px solid maroon;padding:15px;border-radius:5px}
+  .empty{color:#777;font-style:italic;padding:10px 0}
+</style>
+</head>
+<body>
+
+<div class="navbar">
+  <img src="PUP.jpg" alt="PUP Logo" class="navbar-logo" onerror="this.style.display='none'">
+  <div class="logo-title">PUP Student Management System</div>
+  <div class="nav-spacer"></div>
+  <a class="nav-link" href="login.html">Log Out</a>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>Select Teacher</h2>
+    <label>Registered Teachers</label>
+    <select id="teacherSelect" onchange="pickTeacher()"></select>
+  </div>
+
+  <div class="teacher-box">
+    <p><b>Teacher:</b> <span id="teacherName">—</span></p>
+    <p><b>Employee No:</b> <span id="employeeNo">—</span></p>
+  </div>
+
+  <div class="card">
+    <h1>Student Register</h1>
+
+    <label>Select Section</label>
+    <select id="sectionSelect" onchange="loadSection()">
+      <option value="">-- Choose a section --</option>
+    </select>
+
+    <h2>Students in this Section</h2>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Student Name</th><th>Student No</th><th>Email</th><th>Phone</th></tr>
+      </thead>
+      <tbody id="studentsBody"></tbody>
+    </table>
+
+    <div style="margin-top:20px">
+      <button onclick="proceed()">Proceed to Attendance Record</button>
+    </div>
+
+    <div class="info-box">
+      <h2>Contact Information of Students</h2>
+      <div id="studentInfo" class="empty">Select a section to view student contact information.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const teachers = JSON.parse(localStorage.getItem("teachers") || "[]");
+const students = JSON.parse(localStorage.getItem("students") || "[]");
+const current  = JSON.parse(localStorage.getItem("currentTeacher") || "null");
+
+// Populate teacher dropdown
+const tSel = document.getElementById("teacherSelect");
+if (teachers.length === 0) {
+  tSel.innerHTML = '<option value="">No teachers registered yet</option>';
+} else {
+  tSel.innerHTML = '<option value="">-- Select Teacher --</option>' +
+    teachers.map((t,i) => `<option value="${i}">${t.name} (${t.employeeNo})</option>`).join("");
+  if (current) {
+    const idx = teachers.findIndex(t => t.employeeNo === current.employeeNo);
+    if (idx >= 0) { tSel.value = idx; pickTeacher(); }
+  }
+}
+
+// Populate section dropdown from registered students
+const sections = [...new Set(students.map(s => s.section))].filter(Boolean).sort();
+const sSel = document.getElementById("sectionSelect");
+sections.forEach(sec => {
+  const opt = document.createElement("option");
+  opt.value = sec; opt.textContent = sec;
+  sSel.appendChild(opt);
+});
+
+function pickTeacher() {
+  const i = document.getElementById("teacherSelect").value;
+  if (i === "") { teacherName.textContent="—"; employeeNo.textContent="—"; return; }
+  const t = teachers[i];
+  document.getElementById("teacherName").textContent = t.name;
+  document.getElementById("employeeNo").textContent = t.employeeNo;
+  localStorage.setItem("currentTeacher", JSON.stringify(t));
+}
+
+function loadSection() {
+  const sec = document.getElementById("sectionSelect").value;
+  const body = document.getElementById("studentsBody");
+  const info = document.getElementById("studentInfo");
+  body.innerHTML = "";
+  if (!sec) { info.innerHTML = '<span class="empty">Select a section to view student information.</span>'; return; }
+  const list = students.filter(s => s.section === sec);
+  if (list.length === 0) {
+    body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#777">No students registered in this section.</td></tr>';
+    info.innerHTML = '<span class="empty">No students found.</span>';
+    return;
+  }
+  list.forEach((s,i) => {
+    body.innerHTML += `<tr><td>${i+1}</td><td>${s.name}</td><td>${s.number}</td><td>${s.email||'—'}</td><td>${s.phone||'—'}</td></tr>`;
+  });
+  info.innerHTML = list.map(s => `<p><b>${s.name}</b> (No: ${s.number})<br>📧 ${s.email||'—'} &nbsp; 📞 ${s.phone||'—'}</p>`).join("");
+}
+
+function proceed() {
+  const sec = document.getElementById("sectionSelect").value;
+  if (!document.getElementById("teacherSelect").value) { alert("Select a teacher first."); return; }
+  if (!sec) { alert("Select a section first."); return; }
+  localStorage.setItem("currentSection", sec);
+  window.location.href = "Record.html";
+}
+</script>
+</body>
+</html>

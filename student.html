@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Dashboard — PUP Attendance</title>
+<script src="theme.js"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="navbar">
+  <img class="navbar-logo" src="PUP.jpg" alt="PUP" onerror="this.style.display='none'">
+  <div class="brand">PUP Attendance<small>Maragondon Branch — Student Portal</small></div>
+  <div class="nav-spacer"></div>
+  <span class="user-chip" id="userChip"></span>
+  <button class="theme-toggle" onclick="window.__toggleTheme()" style="margin-right:4px">🌙</button>
+  <a class="nav-link logout" href="#" onclick="event.preventDefault();logout();">Log Out</a>
+</div>
+
+<div class="container">
+
+  <div class="stats">
+    <div class="stat"><div class="lbl">Total Sessions</div><div class="val" id="sTotal">0</div></div>
+    <div class="stat"><div class="lbl">Present</div><div class="val" id="sP">0</div></div>
+    <div class="stat"><div class="lbl">Absent</div><div class="val" id="sA">0</div></div>
+    <div class="stat"><div class="lbl">Attendance %</div><div class="val" id="sPct">—</div></div>
+  </div>
+
+  <div class="card">
+    <h1>Welcome, <span id="hiName">Student</span> 👋</h1>
+    <div class="sub">Mark your attendance for today's class below.</div>
+
+    <div class="info-box">
+      <p><b>Name:</b> <span id="iName">—</span></p>
+      <p><b>Student No.:</b> <span id="iNo">—</span></p>
+      <p><b>Course / Section:</b> <span id="iSec">—</span></p>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Subject</label>
+        <select id="subject">
+          <option value="">-- Choose a subject --</option>
+          <option>Programming 1</option><option>Data Structures</option>
+          <option>Web Development</option><option>Database Systems</option>
+          <option>Networking</option><option>Software Engineering</option>
+          <option>Discrete Math</option><option>PE / NSTP</option>
+        </select>
+      </div>
+      <div>
+        <label>Teacher</label>
+        <select id="teacher"><option value="">-- Choose a teacher --</option></select>
+      </div>
+    </div>
+
+    <label>Date</label>
+    <input id="recDate" type="date">
+
+    <button class="btn success" onclick="markPresent()">✓ Mark Me Present</button>
+    <div id="msg" class="msg"></div>
+  </div>
+
+  <div class="card">
+    <h2>My Attendance History</h2>
+    <table>
+      <thead><tr><th>Date</th><th>Subject</th><th>Teacher</th><th>Status</th></tr></thead>
+      <tbody id="histBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+const sess = requireRole("student");
+const me = findUser("student", sess.id);
+
+document.getElementById("userChip").textContent = me.name + " · " + me.id;
+document.getElementById("hiName").textContent = me.name.split(" ")[0];
+document.getElementById("iName").textContent = me.name;
+document.getElementById("iNo").textContent = me.id;
+document.getElementById("iSec").textContent = (me.course||"—") + " · " + (me.section||"—");
+document.getElementById("recDate").value = today();
+
+// Populate teachers (faculty whose sections include the student's section, fallback to all)
+const allTeachers = allUsersByRole("faculty");
+const myTeachers = allTeachers.filter(t => (t.sections||[]).includes(me.section));
+const teachersList = myTeachers.length ? myTeachers : allTeachers;
+const tSel = document.getElementById("teacher");
+teachersList.forEach(t => { const o = document.createElement("option"); o.value = t.id; o.textContent = t.name + " ("+t.id+")"; tSel.appendChild(o); });
+
+function markPresent() {
+  const subject = document.getElementById("subject").value;
+  const teacher = document.getElementById("teacher").value;
+  const date = document.getElementById("recDate").value || today();
+  const msg = document.getElementById("msg");
+  if (!subject) return showMsg(msg, "Please select a subject.", "error");
+  if (!teacher) return showMsg(msg, "Please select a teacher.", "error");
+
+  const all = DB.get("attendance", []);
+  const dup = all.find(r => r.date===date && r.studentId===me.id && r.subject===subject);
+  if (dup) return showMsg(msg, "You already marked attendance for this subject today.", "error");
+
+  all.push({ date, studentId: me.id, studentName: me.name, section: me.section,
+             subject, teacher, status: "P", mark: "self", ts: Date.now() });
+  DB.set("attendance", all);
+  showMsg(msg, "✓ You were marked PRESENT for " + subject + " on " + fmtDate(date), "ok");
+  renderHistory();
+}
+
+function renderHistory() {
+  const all = DB.get("attendance", []).filter(r => r.studentId === me.id)
+                                       .sort((a,b)=> b.ts - a.ts);
+  const body = document.getElementById("histBody");
+  if (!all.length) { body.innerHTML = '<tr><td colspan="4" class="empty">No attendance records yet.</td></tr>'; }
+  else body.innerHTML = all.map(r => {
+    const tn = (allTeachers.find(t=>t.id===r.teacher)||{}).name || r.teacher || "—";
+    return `<tr><td>${fmtDate(r.date)}</td><td>${r.subject||"—"}</td><td>${tn}</td>
+            <td><span class="badge ${r.status}">${r.status==="P"?"Present":r.status==="A"?"Absent":"Late"}</span></td></tr>`;
+  }).join("");
+  const total = all.length, p = all.filter(r=>r.status==="P").length, a = all.filter(r=>r.status==="A").length;
+  document.getElementById("sTotal").textContent = total;
+  document.getElementById("sP").textContent = p;
+  document.getElementById("sA").textContent = a;
+  document.getElementById("sPct").textContent = total ? Math.round(p/total*100)+"%" : "—";
+}
+renderHistory();
+</script>
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forgot Password — PUP Attendance</title>
+<script src="theme.js"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="auth-bg">
+  <form class="auth-card" style="position:relative" onsubmit="event.preventDefault(); doReset();">
+    <div style="position:absolute;top:18px;right:18px">
+      <button type="button" class="theme-toggle" onclick="window.__toggleTheme()">🌙</button>
+    </div>
+    <div class="auth-header">
+      <div class="logo-ring">
+        <img src="PUP.jpg" alt="PUP Logo" onerror="this.style.display='none'">
+      </div>
+      <h1>Forgot Password</h1>
+      <p>Answer your security questions to reset</p>
+    </div>
+
+    <label>Role</label>
+    <select id="role" required>
+      <option value="">-- Select Role --</option>
+      <option value="faculty">Faculty / Teacher</option>
+      <option value="student">Student</option>
+    </select>
+
+    <label>User ID</label>
+    <input id="userId" placeholder="Employee No. or Student No." required>
+
+    <button class="btn ghost" type="button" onclick="loadQuestions()">Load Security Questions</button>
+
+    <div id="qBox" class="questions-block hidden"></div>
+
+    <div id="resetBox" class="hidden">
+      <label>4-digit Security PIN</label>
+      <input id="pin" type="password" maxlength="4" pattern="\d{4}" placeholder="••••">
+      <label>New Password</label>
+      <input id="newPass" type="password" minlength="6" placeholder="At least 6 characters">
+      <label>Re-enter New Password</label>
+      <input id="newPass2" type="password" minlength="6">
+      <button class="btn" type="submit">Reset Password</button>
+    </div>
+
+    <div id="msg" class="msg"></div>
+    <p class="center-link"><a href="login.html">← Back to Login</a></p>
+  </form>
+</div>
+
+<script src="app.js"></script>
+<script>
+let currentUser = null;
+
+function loadQuestions() {
+  const role = document.getElementById("role").value;
+  const id   = document.getElementById("userId").value.trim();
+  const msg  = document.getElementById("msg");
+  if (!role || !id) return showMsg(msg, "Enter your role and ID first.", "error");
+  const u = findUser(role, id);
+  if (!u) return showMsg(msg, "No account found with that ID.", "error");
+  currentUser = u;
+  const qBox = document.getElementById("qBox");
+  qBox.classList.remove("hidden");
+  qBox.innerHTML = "<b style='color:var(--maroon);font-size:13px;'>Answer your 2 security questions:</b>" +
+    u.qIndexes.map((qi, idx) => `
+      <p style="margin-top:10px;">${SECURITY_QUESTIONS[qi]}</p>
+      <input id="ans${idx}" placeholder="Your answer">
+    `).join("");
+  document.getElementById("resetBox").classList.remove("hidden");
+  showMsg(msg, "Questions loaded. Answer them and set your new password.", "info");
+}
+
+function doReset() {
+  const msg = document.getElementById("msg");
+  if (!currentUser) return showMsg(msg, "Load your security questions first.", "error");
+
+  const a0 = (document.getElementById("ans0").value || "").trim().toLowerCase();
+  const a1 = (document.getElementById("ans1").value || "").trim().toLowerCase();
+  if (a0 !== currentUser.qAnswers[0] || a1 !== currentUser.qAnswers[1])
+    return showMsg(msg, "Security answers do not match. Please try again.", "error");
+
+  const pin = document.getElementById("pin").value;
+  if (!/^\d{4}$/.test(pin))         return showMsg(msg, "PIN must be exactly 4 digits.", "error");
+  if (hashPin(pin) !== currentUser.pinHash) return showMsg(msg, "Incorrect PIN.", "error");
+
+  const p1 = document.getElementById("newPass").value;
+  const p2 = document.getElementById("newPass2").value;
+  if (p1.length < 6) return showMsg(msg, "Password must be at least 6 characters.", "error");
+  if (p1 !== p2)     return showMsg(msg, "Passwords do not match.", "error");
+
+  // Save hashed password, remove any old plaintext password
+  currentUser.passwordHash = hashPassword(p1);
+  delete currentUser.password;
+  saveUser(currentUser);
+  showMsg(msg, "✅ Password reset successfully! Redirecting to login…", "ok");
+  setTimeout(() => window.location.href = "login.html", 900);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PUP Maragondon — Attendance System</title>
+<script src="theme.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;font-family:'Segoe UI',Arial,sans-serif;}
+
+/* ── VIDEO BACKGROUND ── */
+.video-bg {
+  position:fixed;inset:0;z-index:0;
+  background:#1a0006;
+}
+.video-bg video {
+  width:100%;height:100%;object-fit:cover;
+  opacity:0.38;
+}
+/* Gradient overlay — deep maroon vignette like PUP hero */
+.video-overlay {
+  position:fixed;inset:0;z-index:1;
+  background:
+    radial-gradient(ellipse at center top, rgba(122,0,25,0.55) 0%, transparent 65%),
+    linear-gradient(180deg,
+      rgba(40,0,10,0.72) 0%,
+      rgba(122,0,25,0.60) 40%,
+      rgba(40,0,10,0.88) 100%
+    );
+}
+
+/* ── TOP STRIP ── */
+.top-strip {
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:rgba(80,0,18,0.75);backdrop-filter:blur(8px);
+  display:flex;align-items:center;padding:0 28px;height:38px;
+  border-bottom:1px solid rgba(245,193,0,0.15);
+}
+.top-strip-brand {
+  display:flex;align-items:center;gap:10px;
+}
+.top-strip-brand img {
+  width:30px;height:30px;object-fit:cover;
+  border-radius:50%;
+  background:#7a0019;
+  filter:drop-shadow(0 1px 4px rgba(0,0,0,.5));
+}
+.top-strip-brand span {
+  font-size:11.5px;font-weight:700;letter-spacing:.5px;
+  color:rgba(255,255,255,.85);text-transform:uppercase;
+}
+.top-strip-sp{flex:1;}
+.top-strip-links {
+  display:flex;align-items:center;gap:0;
+}
+.top-strip-links a {
+  color:rgba(255,255,255,.65);font-size:11.5px;
+  padding:0 12px;height:38px;display:flex;align-items:center;
+  border-left:1px solid rgba(255,255,255,.1);
+  transition:.15s;text-decoration:none;
+}
+.top-strip-links a:hover{color:#f5c100;background:rgba(255,255,255,.06);}
+
+/* ── MAIN STAGE ── */
+.stage {
+  position:relative;z-index:10;
+  height:100vh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;
+  padding:80px 24px 40px;
+}
+
+/* ── SEAL RING ── */
+.seal-ring {
+  width:148px;height:148px;border-radius:50%;
+  border:2.5px solid rgba(245,193,0,0.6);
+  background:#7a0019;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:30px;
+  overflow:hidden;
+  box-shadow:
+    0 0 0 1px rgba(245,193,0,0.18),
+    0 0 60px rgba(122,0,25,0.55),
+    inset 0 0 30px rgba(0,0,0,0.3);
+  animation:sealPulse 3.2s ease-in-out infinite;
+}
+.seal-ring img {
+  width:136px;height:136px;object-fit:contain;
+  border-radius:50%;
+  /* Remove white background: invert → sepia → shift hue to maroon */
+  filter: drop-shadow(0 0 0px transparent);
+}
+@keyframes sealPulse {
+  0%,100%{box-shadow:0 0 0 1px rgba(245,193,0,.18),0 0 60px rgba(122,0,25,.55),inset 0 0 30px rgba(0,0,0,.3);}
+  50%{box-shadow:0 0 0 6px rgba(245,193,0,.10),0 0 90px rgba(122,0,25,.70),inset 0 0 30px rgba(0,0,0,.3);}
+}
+
+/* ── EYEBROW ── */
+.eyebrow {
+  font-size:10.5px;font-weight:700;letter-spacing:2.5px;
+  color:rgba(245,193,0,0.80);text-transform:uppercase;
+  margin-bottom:14px;
+}
+
+/* ── HEADLINE ── */
+.headline {
+  font-size:clamp(28px,5.5vw,54px);
+  font-weight:900;color:#fff;
+  letter-spacing:-.5px;line-height:1.12;
+  margin-bottom:12px;
+  text-shadow:0 3px 20px rgba(0,0,0,0.7);
+}
+.headline em {
+  font-style:normal;
+  background:linear-gradient(90deg,#f5c100,#ffd740);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+/* ── TAGLINE ── */
+.tagline {
+  font-size:15px;
+  color:rgba(255,255,255,0.72);
+  line-height:2.0;
+  max-width:700px;
+  width:100%;
+  margin:0 auto 36px;
+  font-weight:400;
+  text-shadow:0 2px 10px rgba(0,0,0,.5);
+  white-space:nowrap;
+}
+@media(max-width:750px){
+  .tagline{font-size:13px;white-space:normal;}
+}
+
+/* ── GET STARTED BUTTON ── */
+.btn-get-started {
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  padding:17px 48px;
+  background:linear-gradient(135deg,#f5c100 0%,#e0a800 100%);
+  color:#1a0006;
+  font-size:16px;font-weight:900;letter-spacing:.5px;
+  border:none;border-radius:50px;cursor:pointer;
+  text-decoration:none;
+  box-shadow:
+    0 4px 24px rgba(245,193,0,0.45),
+    0 2px 8px rgba(0,0,0,0.3);
+  transition:transform .2s, box-shadow .2s, background .2s;
+  position:relative;overflow:hidden;
+}
+.btn-get-started::before {
+  content:'';position:absolute;inset:0;border-radius:50px;
+  background:linear-gradient(135deg,rgba(255,255,255,.25) 0%,transparent 60%);
+  pointer-events:none;
+}
+.btn-get-started:hover {
+  transform:translateY(-3px) scale(1.03);
+  box-shadow:0 8px 36px rgba(245,193,0,0.60),0 4px 14px rgba(0,0,0,0.35);
+  background:linear-gradient(135deg,#ffd740 0%,#f5c100 100%);
+}
+.btn-get-started:active{transform:translateY(0) scale(.99);}
+.btn-arrow {font-size:18px;transition:transform .2s;}
+.btn-get-started:hover .btn-arrow{transform:translateX(4px);}
+
+/* ── SECONDARY LINK ── */
+.alt-link {
+  display:block;margin-top:18px;
+  font-size:13px;color:rgba(255,255,255,.55);
+  text-decoration:none;transition:.15s;
+}
+.alt-link:hover{color:rgba(245,193,0,.85);}
+.alt-link span{border-bottom:1px dashed rgba(255,255,255,.3);}
+
+/* ── MOTTO STRIP ── */
+.motto-strip {
+  position:fixed;bottom:0;left:0;right:0;z-index:10;
+  background:rgba(30,0,8,0.72);backdrop-filter:blur(8px);
+  border-top:1px solid rgba(245,193,0,0.15);
+  padding:12px 28px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:16px;flex-wrap:wrap;
+}
+.motto-text {
+  font-size:12.5px;color:rgba(255,255,255,.50);
+  font-style:italic;
+}
+.motto-text strong{color:rgba(245,193,0,.70);font-style:normal;}
+.footer-links-row {
+  display:flex;gap:16px;
+}
+.footer-links-row a {
+  font-size:11.5px;color:rgba(255,255,255,.35);
+  text-decoration:none;transition:.15s;
+}
+.footer-links-row a:hover{color:rgba(245,193,0,.8);}
+
+/* ── FLOATING PARTICLES (subtle) ── */
+.particles {
+  position:fixed;inset:0;z-index:2;pointer-events:none;
+  overflow:hidden;
+}
+.particle {
+  position:absolute;
+  width:3px;height:3px;border-radius:50%;
+  background:rgba(245,193,0,0.25);
+  animation:floatUp linear infinite;
+}
+@keyframes floatUp {
+  0%{transform:translateY(0) translateX(0);opacity:0;}
+  10%{opacity:1;}
+  90%{opacity:.4;}
+  100%{transform:translateY(-100vh) translateX(20px);opacity:0;}
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:480px){
+  .headline{font-size:28px;}
+  .btn-get-started{padding:15px 36px;font-size:15px;}
+  .seal-ring{width:120px;height:120px;}
+  .seal-ring img{width:120px;height:120px;}
+  .top-strip-links{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- VIDEO BACKGROUND -->
+<div class="video-bg"></div>
+<div class="video-overlay"></div>
+
+<!-- FLOATING PARTICLES -->
+<div class="particles" id="particles"></div>
+
+<!-- TOP STRIP -->
+<div class="top-strip">
+  <div class="top-strip-brand">
+    <img src="PUP.jpg" alt="PUP Seal" onerror="this.style.display='none'">
+    <span>PUP Maragondon</span>
+  </div>
+  <div class="top-strip-sp"></div>
+  <div class="top-strip-links">
+    <a href="#">Good Governance</a>
+    <a href="#">Transparency Seal</a>
+    <a href="#">Contact Us</a>
+    <a href="index.html">Home</a>
+  </div>
+</div>
+
+<!-- MAIN STAGE -->
+<div class="stage">
+
+  <!-- Seal -->
+  <div class="seal-ring">
+    <img src="PUP.jpg" alt="PUP Seal" onerror="this.style.opacity='.25'">
+  </div>
+
+  <!-- Eyebrow -->
+  <div class="eyebrow">Republic of the Philippines &nbsp;·&nbsp; Maragondon Branch</div>
+
+  <!-- Headline -->
+  <h1 class="headline">
+    Polytechnic University<br>
+    of the <em>Philippines</em>
+  </h1>
+
+  <!-- Tagline -->
+  <p class="tagline">
+    Welcome to the <strong style="color:rgba(255,255,255,.90);">PUP Maragondon Attendance Management System.</strong><br>
+    Track attendance and manage records.<br>
+    Stay connected — all in one place.
+  </p>
+
+  <!-- CTA Button -->
+  <a href="login.html" class="btn-get-started">
+    Get Started
+    <span class="btn-arrow">→</span>
+  </a>
+
+  <!-- Secondary -->
+  <a href="register.html" class="alt-link">
+    New here? <span>Create an account</span>
+  </a>
+
+</div>
+
+<!-- BOTTOM MOTTO STRIP -->
+<div class="motto-strip">
+  <div class="motto-text">
+    <strong>"Mula Sa 'Yo, Para sa Bayan"</strong> &nbsp;—&nbsp; The Country's 1st Polytechnic University
+  </div>
+  <div class="footer-links-row">
+    <a href="#">Terms of Use</a>
+    <a href="#">Privacy Statement</a>
+    <a href="https://pup.edu.ph" target="_blank">pup.edu.ph</a>
+  </div>
+</div>
+
+<script>
+// ── Spawn subtle gold particles ──────────────────────
+(function() {
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 22; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + 'vw';
+    p.style.bottom = '-6px';
+    p.style.width = p.style.height = (Math.random() * 3 + 2) + 'px';
+    p.style.animationDuration = (Math.random() * 14 + 10) + 's';
+    p.style.animationDelay = (Math.random() * 12) + 's';
+    p.style.opacity = Math.random() * 0.4 + 0.1;
+    container.appendChild(p);
+  }
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PUP Maragondon — Attendance System</title>
+<script src="theme.js"></script>
+<link rel="stylesheet" href="styles.css">
+<style>
+/* ── Landing page specific ── */
+body { background: var(--bg); overflow-x: hidden; }
+
+/* Top nav */
+.land-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  background: rgba(90,0,18,.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  height: 66px;
+  display: flex; align-items: center;
+  padding: 0 36px; gap: 16px;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+  transition: background .3s;
+}
+.land-nav .brand-white { color: #fff; font-size: 17px; font-weight: 800; }
+.land-nav .brand-white small { display: block; font-size: 10px; color: rgba(255,255,255,.6); font-weight: 500; }
+.land-nav .nav-spacer { flex: 1; }
+.land-nav-btns { display: flex; align-items: center; gap: 10px; }
+.land-nav .btn-nav {
+  padding: 8px 18px; border-radius: 8px; font-size: 13px; font-weight: 700;
+  text-decoration: none; transition: .2s; cursor: pointer; border: none; font-family: inherit;
+}
+.btn-nav-outline { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,.5); }
+.btn-nav-outline:hover { background: rgba(255,255,255,.15); border-color: #fff; }
+.btn-nav-fill { background: var(--gold); color: #1a1a1a; }
+.btn-nav-fill:hover { background: var(--gold-dark); }
+.land-nav .theme-toggle { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.2); color: #fff; }
+.land-nav .theme-toggle:hover { background: var(--gold); color: #1a1a1a; border-color: var(--gold); }
+
+/* Hero */
+.hero {
+  min-height: 100vh;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.hero-bg {
+  position: absolute; inset: 0;
+  background: url('maragondon.jpg') center/cover no-repeat;
+}
+.hero-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(145deg,
+    rgba(80,0,15,.93) 0%,
+    rgba(110,0,22,.85) 50%,
+    rgba(60,0,10,.96) 100%);
+}
+.hero-pattern {
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle at 25% 25%, rgba(245,193,0,.08) 0%, transparent 50%),
+                    radial-gradient(circle at 75% 75%, rgba(245,193,0,.05) 0%, transparent 50%);
+}
+.hero-content {
+  position: relative; z-index: 2;
+  text-align: center;
+  padding: 100px 24px 60px;
+  max-width: 760px;
+}
+.hero-seal {
+  width: 110px; height: 110px;
+  background: rgba(255,255,255,.08);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 24px;
+  border: 2px solid rgba(245,193,0,.4);
+  box-shadow: 0 0 40px rgba(245,193,0,.15);
+}
+.hero-seal img { width: 82px; height: 82px; object-fit: contain; }
+
+.hero-school {
+  font-size: 13px; font-weight: 700; letter-spacing: 2px;
+  color: var(--gold); text-transform: uppercase; margin-bottom: 14px;
+}
+.hero-title {
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 900; color: #fff;
+  line-height: 1.15; margin-bottom: 10px;
+}
+.hero-title span { color: var(--gold); }
+.hero-subtitle {
+  font-size: 16px; color: rgba(255,255,255,.75);
+  margin-bottom: 36px; line-height: 1.7;
+}
+.hero-cta { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.cta-primary {
+  background: var(--gold); color: #1a1a1a;
+  padding: 15px 36px; border-radius: 10px; font-size: 16px; font-weight: 800;
+  text-decoration: none; border: none; cursor: pointer; font-family: inherit;
+  transition: .2s; display: inline-flex; align-items: center; gap: 8px;
+  box-shadow: 0 4px 20px rgba(245,193,0,.4);
+}
+.cta-primary:hover { background: var(--gold-dark); transform: translateY(-2px); box-shadow: 0 6px 28px rgba(245,193,0,.5); }
+.cta-secondary {
+  background: rgba(255,255,255,.1);
+  border: 2px solid rgba(255,255,255,.4);
+  color: #fff;
+  padding: 15px 36px; border-radius: 10px; font-size: 16px; font-weight: 700;
+  text-decoration: none; cursor: pointer; font-family: inherit;
+  transition: .2s; display: inline-flex; align-items: center; gap: 8px;
+  backdrop-filter: blur(6px);
+}
+.cta-secondary:hover { background: rgba(255,255,255,.2); border-color: #fff; transform: translateY(-2px); }
+
+.hero-scroll {
+  position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+  color: rgba(255,255,255,.45); font-size: 12px; letter-spacing: 1.5px;
+  text-transform: uppercase; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  animation: bounce 2s infinite;
+}
+@keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(6px)} }
+.hero-scroll::after { content: '↓'; font-size: 18px; }
+
+/* Features section */
+.features {
+  padding: 80px 24px;
+  background: var(--bg);
+  transition: background .3s;
+}
+.features-inner { max-width: 1060px; margin: 0 auto; }
+.section-label {
+  text-align: center; color: var(--maroon); font-size: 12px; font-weight: 800;
+  letter-spacing: 2.5px; text-transform: uppercase; margin-bottom: 10px;
+}
+.section-title { text-align: center; font-size: clamp(22px,4vw,34px); font-weight: 900; color: var(--text); margin-bottom: 14px; }
+.section-sub { text-align: center; color: var(--muted); font-size: 15px; max-width: 540px; margin: 0 auto 48px; line-height: 1.7; }
+
+.feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 20px; }
+.feature-card {
+  background: var(--card); border-radius: 14px; padding: 28px 24px;
+  border: 1px solid var(--border); box-shadow: var(--shadow);
+  transition: transform .2s, box-shadow .2s, background .3s, border-color .3s;
+}
+.feature-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.feature-icon {
+  width: 52px; height: 52px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--maroon) 0%, var(--maroon-light) 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(122,0,25,.25);
+}
+.feature-card h3 { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+.feature-card p  { font-size: 13px; color: var(--muted); line-height: 1.65; }
+
+/* CTA band */
+.cta-band {
+  background: linear-gradient(135deg, var(--maroon-dark) 0%, var(--maroon) 60%, var(--maroon-light) 100%);
+  padding: 64px 24px; text-align: center;
+  position: relative; overflow: hidden;
+}
+.cta-band::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 70% 50%, rgba(245,193,0,.1) 0%, transparent 60%);
+}
+.cta-band h2 { font-size: clamp(22px,4vw,32px); font-weight: 900; color: #fff; margin-bottom: 10px; position: relative; }
+.cta-band p  { color: rgba(255,255,255,.75); margin-bottom: 30px; font-size: 15px; position: relative; }
+.cta-band-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; position: relative; }
+
+/* Footer */
+.footer {
+  background: var(--maroon-dark);
+  padding: 28px 36px;
+  display: flex; align-items: center; flex-wrap: wrap; gap: 12px;
+}
+.footer-logo { display: flex; align-items: center; gap: 10px; }
+.footer-logo img { width: 34px; height: 34px; object-fit: contain; opacity: .9; }
+.footer-logo span { color: #fff; font-size: 13px; font-weight: 700; }
+.footer-spacer { flex: 1; }
+.footer-copy { color: rgba(255,255,255,.5); font-size: 12px; }
+
+/* Modal-style confirmation for "exit" */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.6);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 999; opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-box {
+  background: var(--card); border-radius: 16px; padding: 34px 36px;
+  max-width: 380px; width: 90%; text-align: center; box-shadow: var(--shadow-lg);
+  transform: scale(.92); transition: transform .25s;
+  border: 1px solid var(--border);
+}
+.modal-overlay.open .modal-box { transform: scale(1); }
+.modal-box h3 { font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 10px; }
+.modal-box p  { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+.modal-btns   { display: flex; gap: 12px; }
+.modal-btns .btn { margin-top: 0; }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="land-nav">
+  <img src="PUP.jpg" alt="PUP" style="width:38px;height:38px;object-fit:contain;border-radius:50%;border:1.5px solid rgba(245,193,0,.4)">
+  <div class="brand-white">
+    PUP Attendance
+    <small>Maragondon Branch</small>
+  </div>
+  <div class="nav-spacer"></div>
+  <div class="land-nav-btns">
+    <button class="theme-toggle" onclick="window.__toggleTheme()" title="Toggle theme">🌙</button>
+    <a class="btn-nav btn-nav-outline" href="login.html">Sign In</a>
+    <a class="btn-nav btn-nav-fill"    href="register.html">Register</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-pattern"></div>
+  <div class="hero-content">
+    <div class="hero-seal">
+      <img src="PUP.jpg" alt="PUP Seal" onerror="this.style.display='none'">
+    </div>
+    <div class="hero-school">Polytechnic University of the Philippines — Maragondon Branch</div>
+    <h1 class="hero-title">
+      Student Attendance<br>
+      <span>Made Simple.</span>
+    </h1>
+    <p class="hero-subtitle">
+      A modern attendance management system for PUP Maragondon.<br>
+      Track, record, and generate reports — all in one place.
+    </p>
+    <div class="hero-cta">
+      <a class="cta-primary" href="login.html">🔐 Sign In to Your Account</a>
+      <a class="cta-secondary" href="register.html">📝 Create an Account</a>
+    </div>
+  </div>
+  <div class="hero-scroll">Scroll</div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="features-inner">
+    <div class="section-label">Why use this system</div>
+    <h2 class="section-title">Everything You Need</h2>
+    <p class="section-sub">Built for students and faculty at PUP Maragondon to manage attendance efficiently and accurately.</p>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🎓</div>
+        <h3>Student Portal</h3>
+        <p>Students can mark their own attendance per subject, view their attendance history, and track their percentage.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">👨‍🏫</div>
+        <h3>Faculty Dashboard</h3>
+        <p>Faculty can take attendance for entire sections, view student contact information, and manage multiple courses.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Reports & Export</h3>
+        <p>Generate daily or weekly attendance reports and download them as CSV files for official school records.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔐</div>
+        <h3>Secure Accounts</h3>
+        <p>2-step verification with security questions and PIN recovery. Separate logins for students and faculty.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌙</div>
+        <h3>Dark &amp; Light Mode</h3>
+        <p>Comfortable viewing in any environment — switch between dark and light themes with one click, system-wide.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📱</div>
+        <h3>Works on Any Device</h3>
+        <p>Fully responsive design — works on laptops, tablets, and phones without any installation required.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BAND -->
+<section class="cta-band">
+  <h2>"Mula Sa 'Yo, Para sa Bayan"</h2>
+  <p>Join the PUP Maragondon community. Create your account today.</p>
+  <div class="cta-band-btns">
+    <a class="cta-primary" href="login.html">Sign In →</a>
+    <a class="cta-secondary" href="register.html">Register Now</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-logo">
+    <img src="PUP.jpg" alt="PUP" onerror="this.style.display='none'">
+    <span>PUP Maragondon Branch — Attendance System</span>
+  </div>
+  <div class="footer-spacer"></div>
+  <div class="footer-copy">© 2026 Polytechnic University of the Philippines</div>
+</footer>
+
+<script src="theme.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
