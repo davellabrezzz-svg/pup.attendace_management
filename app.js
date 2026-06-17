@@ -122,12 +122,14 @@ function downloadXLSX(rows, colWidths, sheetName, filename) {
 }
 
 /* ════════════════════════════════════════════════════════
-   SEED — create demo accounts on very first run only
-   (only runs if the "users" key has never been set)
+   SEED — create demo accounts on very first run only.
+   Never overwrites existing user data so that any details
+   entered on the Register page are always preserved.
 ════════════════════════════════════════════════════════ */
 (function seed() {
   const programList = ["BSCS", "BSIT", "DIT", "DOMT", "DEET"];
-  const sectionList = ["BSIT 1-1"];
+  // Students are in DIT 2-1
+  const sectionList = ["DIT 2-1"];
   const studentNames = [
     "Dave Almher Llabrez",
     "Benuel Balanlayos",
@@ -142,20 +144,23 @@ function downloadXLSX(rows, colWidths, sheetName, filename) {
     "Althea Mendoza"
   ];
 
-  const demo = {
-    role: "faculty", id: "T-001",
-    name: "Yayeth Evangelista",
-    age: "42", bday: "1983-05-10", sex: "Female",
-    email: "yayeth.evangelista@pup.edu.ph", address: "Maragondon, Cavite",
-    passwordHash: hashPassword("teacher123"),
-    pinHash: hashPin("1234"),
-    qIndexes: [0, 2], qAnswers: ["adobo", "santos"],
-    courses: programList,
-    sections: sectionList
-  };
-
   const seededUsers = DB.get("users", {}) || {};
-  seededUsers[userKey("faculty", "T-001")] = { ...seededUsers[userKey("faculty", "T-001")], ...demo };
+
+  // Only seed the faculty demo if it doesn't already exist
+  const facultyKey = userKey("faculty", "T-001");
+  if (!seededUsers[facultyKey]) {
+    seededUsers[facultyKey] = {
+      role: "faculty", id: "T-001",
+      name: "Yayeth Evangelista",
+      age: "42", bday: "1983-05-10", sex: "Female",
+      email: "yayeth.evangelista@pup.edu.ph", address: "Maragondon, Cavite",
+      passwordHash: hashPassword("teacher123"),
+      pinHash: hashPin("1234"),
+      qIndexes: [0, 2], qAnswers: ["adobo", "santos"],
+      courses: programList,
+      sections: sectionList
+    };
+  }
 
   // Each demo student has a distinct guardian and a distinct hometown address
   const guardians = [
@@ -183,19 +188,22 @@ function downloadXLSX(rows, colWidths, sheetName, filename) {
 
   studentNames.forEach((name, index) => {
     const id = "2024-" + String(index + 1).padStart(5, "0");
-    const emailName = name.toLowerCase().replace(/[^a-z]+/g, ".").replace(/^\.|\.$/g, "");
-    seededUsers[userKey("student", id)] = {
-      ...seededUsers[userKey("student", id)],
-      role: "student", id, name,
-      age: "19", bday: "2005-08-12", sex: "",
-      email: emailName + "@pup.edu.ph", phone: "09" + String(170000000 + index).slice(0, 9),
-      guardian: guardians[index % guardians.length],
-      address: addresses[index % addresses.length],
-      section: "BSIT 1-1", course: "BSIT",
-      passwordHash: hashPassword("student123"),
-      pinHash: hashPin("1234"),
-      qIndexes: [1, 3], qAnswers: ["whiskers", "manila"]
-    };
+    const key = userKey("student", id);
+    // Only seed students that don't already exist — preserves registered details
+    if (!seededUsers[key]) {
+      const emailName = name.toLowerCase().replace(/[^a-z]+/g, ".").replace(/^\.|\.$/g, "");
+      seededUsers[key] = {
+        role: "student", id, name,
+        age: "19", bday: "2005-08-12", sex: "",
+        email: emailName + "@pup.edu.ph", phone: "09" + String(170000000 + index).slice(0, 9),
+        guardian: guardians[index % guardians.length],
+        address: addresses[index % addresses.length],
+        section: "DIT 2-1", course: "DIT",
+        passwordHash: hashPassword("student123"),
+        pinHash: hashPin("1234"),
+        qIndexes: [1, 3], qAnswers: ["whiskers", "manila"]
+      };
+    }
   });
 
   DB.set("users", seededUsers);
